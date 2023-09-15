@@ -1,16 +1,23 @@
 from tkinter import *
 from tkinter import filedialog
 import os
+import pymeshlab
+import polyscope as ps
+ms = None
 
 current_dir = os.getcwd()
 
 def browse_button() -> None:
   db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
-  file = filedialog.askopenfile(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
-  print(file)
+  filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
+  ms.load_new_mesh(filename)
+  ms.show_polyscope()
 
 
 def main() -> None:
+  global ms
+  ms = pymeshlab.MeshSet()
+
   root = Tk()
   root.title("3D Shape Retrieval")
   root.geometry("500x500")
