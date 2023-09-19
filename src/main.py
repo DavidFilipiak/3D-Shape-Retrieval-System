@@ -3,6 +3,7 @@ from tkinter import filedialog
 import os
 import pymeshlab
 import polyscope as ps
+from mesh import Mesh
 ms = None
 
 current_dir = os.getcwd()
@@ -22,9 +23,9 @@ def main() -> None:
   root.title("3D Shape Retrieval")
   root.geometry("500x500")
 
-  label_browse = Label(master=root, textvariable="Select a mesh")
+  label_browse = Label(root, text="Load Mesh into the app ")
   label_browse.grid(row=0, column=1)
-  button_browse = Button(text="Browse", command=browse_button)
+  button_browse = Button(text="Load", command=browse_button)
   button_browse.grid(row=0, column=3)
 
   root.mainloop()
