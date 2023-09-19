@@ -15,6 +15,9 @@ def browse_button() -> None:
   db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
   filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
   ms.load_new_mesh(filename)
+  classType = os.path.dirname(filename).split('/')[-1]
+  print(f"face number: {ms.current_mesh().face_number()}")
+  print(f" vertex number{ms.current_mesh().vertex_number()}")
   listbox_loaded_meshes.insert(END, "/".join(filename.split("/")[-2:]))
   #ms.show_polyscope()
 
