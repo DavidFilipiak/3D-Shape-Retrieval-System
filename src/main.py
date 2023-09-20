@@ -26,6 +26,14 @@ def count_triangles_and_quads(polygonal_face_list):
             num_quads += 1
     return num_triangles, num_quads
 
+def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
+  if (vertex_num < 100 or face_num < 100):
+    print("The mesh is poorly-sampled.")
+    mesh.subdivision_surfaces_midpoint()
+    filename_save = filename.split("/")[-1].split('.')[0]
+    last_slash_index = filename.rfind('/')
+    result_path = filename[:last_slash_index]
+    ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
 
 def browse_button() -> None:
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
@@ -47,7 +55,7 @@ def browse_button() -> None:
     )
     meshes[mesh.name] = mesh
     print(mesh)
-
+    resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
     '''
     classType = os.path.dirname(filename).split('/')[-1]
     print(f"class type: {classType}")
