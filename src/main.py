@@ -6,6 +6,7 @@ import pandas as pd
 import polyscope as ps
 from mesh import Mesh, meshes
 from database import Database
+from normalize import normalize
 
 # GLOBAL VARIABLES
 ms = None
@@ -60,6 +61,12 @@ def browse_button() -> None:
   '''
 
 
+def show():
+    ms.show_polyscope()
+
+    normalize(ms)
+
+
 # right now this function only loads custom features from the csv_files file until real ones will go there
 def analyze_meshes() -> None:
     database = Database()
@@ -79,7 +86,7 @@ def main() -> None:
 
     button_browse = Button(text="Load Mesh", command=browse_button)
     button_browse.grid(row=0, column=1)
-    button_show = Button(text="Show Loaded Meshes", command=ms.show_polyscope)
+    button_show = Button(text="Show Loaded Meshes", command=show)
     button_show.grid(row=0, column=2)
     button_analyze = Button(text="Analyze", command=analyze_meshes)
     button_analyze.grid(row=0, column=3)

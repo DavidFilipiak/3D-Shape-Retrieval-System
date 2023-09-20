@@ -1,0 +1,23 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Transform: Translate, Center, set Origin">
+  <Param tooltip="[XYZ translation] adds X,Y and Z offset to Layer transformation, [Center on BBox] moves Layer Origin to the Bounding Box center, [Set new Origin] moves Layer Origin to a specific point" type="RichEnum" description="Transformation:" enum_val2="Center on Layer BBox" name="traslMethod" value="2" enum_val3="Set new Origin" enum_val1="Center on Scene BBox" enum_cardinality="4" enum_val0="XYZ translation"/>
+  <Param tooltip="when using [XYZ translation], amount of translation along the X axis (in model units)" max="7.73999" type="RichDynamicFloat" description="X Axis" name="axisX" min="-7.73999" value="0"/>
+  <Param tooltip="when using [XYZ translation], amount of translation along the Y axis (in model units)" max="7.73999" type="RichDynamicFloat" description="Y Axis" name="axisY" min="-7.73999" value="0"/>
+  <Param tooltip="when using [XYZ translation], amount of translation along the Z axis (in model units)" max="7.73999" type="RichDynamicFloat" description="Z Axis" name="axisZ" min="-7.73999" value="0"/>
+  <Param tooltip="when using [Set new Origin], this is the location of the new Origin." type="RichPosition" description="New Origin:" z="0" name="newOrigin" y="0" x="0"/>
+  <Param tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" type="RichBool" description="Freeze Matrix" name="Freeze" value="true"/>
+  <Param tooltip="If selected the filter will be applied to all visible mesh layers" type="RichBool" description="Apply to all visible Layers" name="allLayers" value="true"/>
+ </filter>
+ <filter name="Transform: Scale, Normalize">
+  <Param tooltip="Scaling" type="RichFloat" description="X Axis" name="axisX" value="1"/>
+  <Param tooltip="Scaling" type="RichFloat" description="Y Axis" name="axisY" value="1"/>
+  <Param tooltip="Scaling" type="RichFloat" description="Z Axis" name="axisZ" value="1"/>
+  <Param tooltip="If selected an uniform scaling (the same for all the three axis) is applied (the X axis value is used)" type="RichBool" description="Uniform Scaling" name="uniformFlag" value="true"/>
+  <Param tooltip="Choose a method" type="RichEnum" description="Center of scaling:" enum_val2="custom point" name="scaleCenter" value="1" enum_val1="barycenter" enum_cardinality="3" enum_val0="origin"/>
+  <Param tooltip="This scaling center is used only if the 'custom point' option is chosen." type="RichPosition" description="Custom center" z="0" name="customCenter" y="0" x="0"/>
+  <Param tooltip="If selected, the object is scaled to a box whose sides are at most 1 unit length" type="RichBool" description="Scale to Unit bbox" name="unitFlag" value="true"/>
+  <Param tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" type="RichBool" description="Freeze Matrix" name="Freeze" value="true"/>
+  <Param tooltip="If selected the filter will be applied to all visible mesh layers" type="RichBool" description="Apply to all visible Layers" name="allLayers" value="true"/>
+ </filter>
+</FilterScript>
