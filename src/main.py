@@ -55,7 +55,8 @@ def browse_button() -> None:
     )
     meshes[mesh.name] = mesh
     print(mesh)
-    resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
+
+    #resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
     '''
     classType = os.path.dirname(filename).split('/')[-1]
     print(f"class type: {classType}")
@@ -72,6 +73,8 @@ def browse_button() -> None:
 def show():
     ms.show_polyscope()
 
+
+def normalize_btn():
     normalize(ms)
 
 
@@ -98,6 +101,8 @@ def main() -> None:
     button_show.grid(row=0, column=2)
     button_analyze = Button(text="Analyze", command=analyze_meshes)
     button_analyze.grid(row=0, column=3)
+    button_normalize = Button(text="Normalize", command=normalize_btn)
+    button_normalize.grid(row=0, column=4)
 
     label_loaded_meshes = Label(root, text="Loaded Meshes")
     label_loaded_meshes.grid(row=1, column=1)
