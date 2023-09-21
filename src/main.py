@@ -4,7 +4,7 @@ import os
 import pymeshlab
 import pandas as pd
 import polyscope as ps
-from mesh import Mesh, meshes
+from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
 from preprocess import normalize
@@ -13,29 +13,16 @@ from pipeline import Pipeline
 
 # GLOBAL VARIABLES
 ms = None
-listbox_loaded_meshes = None
+database = None
+listbox_loaded_meshes, label_loaded_meshes, current_mesh_label, current_csv_label = None, None, None, None
 current_dir = os.getcwd()
 selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
 selected_y = [0, 2000]  # to store the list of values for y-axis
 curr_mesh = None
 
 
-def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
-  if (vertex_num < 100 or face_num < 100):
-    print("The mesh is poorly-sampled.")
-    mesh.subdivision_surfaces_midpoint()
-    filename_save = filename.split("/")[-1].split('.')[0]
-    last_slash_index = filename.rfind('/')
-    result_path = filename[:last_slash_index]
-    ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
-
-def browse_button() -> None:
-    global curr_mesh
-
-    db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
-    filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
-    ms.load_new_mesh(filename)
-
+def add_mesh_to_system(filename=""):
+    global curr_mesh, current_mesh_label
     current_mesh = ms.current_mesh()
     mesh_name = "/".join(filename.split("/")[-2:])
     listbox_loaded_meshes.insert(END, mesh_name)
@@ -54,28 +41,68 @@ def browse_button() -> None:
     )
     meshes[mesh.name] = mesh
     curr_mesh = mesh
-    print(mesh)
+    current_mesh_label.config(text=f"Current mesh: {mesh.name}")
 
-    #resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
-    '''
-    classType = os.path.dirname(filename).split('/')[-1]
-    print(f"class type: {classType}")
-    print(f"face number: {ms.current_mesh().face_number()}")
-    print(f"The mesh is alligned on the x-axis: {ms.current_mesh().bounding_box().dim_x()}, y-axis: {ms.current_mesh().bounding_box().dim_y()}"
-          f" and z-axis: {ms.current_mesh().bounding_box().dim_z()}")
-    print(f" vertex number{ms.current_mesh().vertex_number()}")
-    listbox_loaded_meshes.insert(END, "/".join(filename.split("/")[-2:]))
-    num_triangles, num_quads = count_triangles_and_quads(ms.current_mesh().polygonal_face_list())
-    print(f"The number of triangles is {num_triangles}, and the number of quads is: {num_quads}")
-  '''
 
-def load_all_meshes() -> None:
+def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
+  if (vertex_num < 100 or face_num < 100):
+    print("The mesh is poorly-sampled.")
+    mesh.subdivision_surfaces_midpoint()
+    filename_save = filename.split("/")[-1].split('.')[0]
+    last_slash_index = filename.rfind('/')
+    result_path = filename[:last_slash_index]
+    ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
+
+
+def browse_button() -> None:
+    global curr_mesh
+
+    db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
+    filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
+    ms.load_new_mesh(filename)
+    add_mesh_to_system(filename)
+    label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+
+
+def load_all_meshes_obj() -> None:
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     for class_name in os.listdir(folder_name):
+        if os.path.isfile(os.path.join(folder_name, class_name)):
+            continue
         for filename in os.listdir(os.path.join(folder_name, class_name)):
             if filename.endswith(".obj"):
                 ms.load_new_mesh(os.path.join(folder_name, class_name, filename))
-                listbox_loaded_meshes.insert(END, f"{class_name}/{filename}")
+                add_mesh_to_system(os.path.join(class_name, filename))
+    label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+
+
+def load_all_meshes_csv() -> None:
+    global current_csv_label
+    filename = filedialog.askopenfilename(title="CSV select", initialdir=os.path.abspath(os.path.join(current_dir, "csv_files")), filetypes=[('CSV files', '*.csv')])
+    database.load_table(filename)
+    current_csv_label.config(text=f"Current CSV: {database.table_name}")
+
+
+def save_current_mesh_obj() -> None:
+    filename = filedialog.asksaveasfilename(title="Mesh save", initialdir=current_dir, filetypes=[('Mesh files', '*.obj')])
+    ms.save_current_mesh(filename)
+
+
+def save_all_meshes_csv() -> None:
+    filename = filedialog.asksaveasfilename(title="CSV save", initialdir=current_dir, filetypes=[('CSV files', '*.csv')])
+    feature_dict = {feature: [] for feature in feature_list}
+    for mesh in meshes.values():
+        f = mesh.get_features_dict()
+        for feature in feature_list:
+            feature_dict[feature].append(f[feature])
+    df = pd.DataFrame(feature_dict)
+    database.add_table(df)
+    print(database.get_table)
+    if not filename.endswith(".csv"):
+        filename = filename + ".csv"
+    database.save_table(filename)
+    current_csv_label.config(text=f"Current CSV: {database.table_name}")
+
 
 def show():
     ms.show_polyscope()
@@ -90,7 +117,6 @@ def normalize_btn():
 
 # right now this function only loads custom features from the csv_files file until real ones will go there
 def analyze_meshes() -> None:
-    database = Database()
     database.load_tables("csv_files")
     features_table = database.get_table("features")
     print(features_table)
@@ -115,45 +141,62 @@ def draw_histogram(arr_x, arr_y):
 def do_nothing():
     pass
 
+
 def main() -> None:
-    global ms, listbox_loaded_meshes
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label
     ms = pymeshlab.MeshSet()
+    database = Database()
 
     root = Tk()
     root.title("3D Shape Retrieval")
     root.geometry("500x500")
 
     menubar = Menu(root)
+    # File menu
     filemenu = Menu(menubar, tearoff=0)
-    filemenu.add_command(label="Load Mesh", command=browse_button)
-    filemenu.add_command(label="Load All (.obj)", command=browse_button)
-    filemenu.add_command(label="Load All (.csv)", command=do_nothing)
+    filemenu.add_command(label="Load Mesh (.obj)", command=browse_button)
+    filemenu.add_command(label="Load All (.obj)", command=load_all_meshes_obj)
+    filemenu.add_command(label="Load All (.csv)", command=load_all_meshes_csv)
+    filemenu.add_separator()
+    filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
+    filemenu.add_command(label="Save All (.csv)", command=save_all_meshes_csv)
+    menubar.add_cascade(label="File", menu=filemenu)
+    # Show menu
+    showmenu = Menu(menubar, tearoff=0)
+    showmenu.add_command(label="Current Mesh", command=do_nothing)
+    showmenu.add_command(label="Selected Meshes", command=do_nothing)
+    showmenu.add_command(label="All Loaded Meshes", command=show)
+    menubar.add_cascade(label="Show", menu=showmenu)
+    # Analyze menu
+    analyzemenu = Menu(menubar, tearoff=0)
+    analyzemenu.add_command(label="Current Mesh", command=do_nothing)
+    analyzemenu.add_command(label="Selected Meshes", command=do_nothing)
+    analyzemenu.add_command(label="All Loaded Meshes", command=do_nothing)
+    menubar.add_cascade(label="Analyze", menu=analyzemenu)
+    # Preprocess menu
+    preprocessmenu = Menu(menubar, tearoff=0)
+    preprocessmenu.add_command(label="Full", command=do_nothing)
+    preprocessmenu.add_command(label="Normalize", command=normalize_btn)
+    preprocessmenu.add_command(label="Resample", command=do_nothing)
+    menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
-    button_browse = Button(text="Load Mesh", command=browse_button)
-    button_browse.grid(row=0, column=1)
-    button_show = Button(text="Show Loaded Meshes", command=show)
-    button_show.grid(row=0, column=2)
+    root.config(menu=menubar)
+
+    current_mesh_label = Label(root, text="Current mesh")
+    current_mesh_label.grid(row=0, column=0)
+    current_csv_label = Label(root, text="Current CSV table")
+    current_csv_label.grid(row=0, column=1)
+
     button_analyze = Button(text="Analyze", command=analyze_meshes)
     button_analyze.grid(row=0, column=3)
-    button_normalize = Button(text="Normalize", command=normalize_btn)
-    button_normalize.grid(row=0, column=4)
 
-    label_loaded_meshes = Label(root, text="Loaded Meshes")
-    label_loaded_meshes.grid(row=1, column=1)
+    label_loaded_meshes = Label(root, text="Loaded meshes")
+    label_loaded_meshes.grid(row=1, column=0)
     listbox_loaded_meshes = Listbox(root, width=50)
-    listbox_loaded_meshes.grid(row=2, column=1, columnspan=3)
+    listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
 
     button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     button_graph.grid(row=3, column=1)
-
-    # class_type_label = Label(root, text="Class type: N/A")
-    # class_type_label.grid(row=1, column=1)
-    #
-    # face_number_label = Label(root, text="Face number: N/A")
-    # face_number_label.grid(row=2, column=1)
-    #
-    # vertex_number_label = Label(root, text="Vertex number: N/A")
-    # vertex_number_label.grid(row=3, column=1)
 
     root.mainloop()
 
