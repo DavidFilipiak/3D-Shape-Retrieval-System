@@ -1,7 +1,7 @@
 meshes = {}
 feature_list = [
     "name",
-    "class",
+    "class_name",
     "num_vertices",
     "num_faces",
     "num_triangles",
@@ -30,11 +30,7 @@ class Mesh():
             setattr(self, key, value)
 
     def __str__(self):
-        return \
-            f"Mesh id: {self.pymeshlab_id}\n" \
-            f"num_vertices: {self.num_vertices}\n" \
-            f"num_faces: {self.num_faces}\n" \
-            f"num_triangles: {self.num_triangles}\n" \
-            f"num_quads: {self.num_quads}\n" \
-            f"class_name: {self.class_name}\n" \
-            f"name: {self.name}\n"
+        string = ""
+        for feature in feature_list:
+            string += f"{feature}: {getattr(self, feature)}\n"
+        return string

@@ -8,11 +8,13 @@ from mesh import Mesh, meshes
 from database import Database
 from preprocess import normalize
 from utils import count_triangles_and_quads
+from pipeline import Pipeline
 
 # GLOBAL VARIABLES
 ms = None
 listbox_loaded_meshes = None
 current_dir = os.getcwd()
+curr_mesh = None
 
 
 def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
@@ -25,6 +27,8 @@ def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
     ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
 
 def browse_button() -> None:
+    global curr_mesh
+
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
     ms.load_new_mesh(filename)
@@ -35,14 +39,18 @@ def browse_button() -> None:
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
     mesh.set_params(
-      num_vertices=current_mesh.vertex_number(),
-      num_faces=current_mesh.face_number(),
-      num_triangles=num_triangles,
-      num_quads=num_quads,
-      class_name=os.path.dirname(filename).split('/')[-1],
-      name=mesh_name
+        num_vertices=current_mesh.vertex_number(),
+        num_faces=current_mesh.face_number(),
+        num_triangles=num_triangles,
+        num_quads=num_quads,
+        class_name=os.path.dirname(filename).split('/')[-1],
+        name=mesh_name,
+        bb_dim_x=current_mesh.bounding_box().dim_x(),
+        bb_dim_y=current_mesh.bounding_box().dim_y(),
+        bb_dim_z=current_mesh.bounding_box().dim_z(),
     )
     meshes[mesh.name] = mesh
+    curr_mesh = mesh
     print(mesh)
 
     #resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
@@ -64,7 +72,10 @@ def show():
 
 
 def normalize_btn():
-    normalize(ms)
+    global ms, curr_mesh
+    p = Pipeline(ms)
+    p.add(normalize)
+    curr_mesh = p.run(curr_mesh)
 
 
 # right now this function only loads custom features from the csv_files file until real ones will go there
