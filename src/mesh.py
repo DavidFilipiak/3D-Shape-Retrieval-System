@@ -29,6 +29,9 @@ class Mesh():
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    def get_features_dict(self):
+        return {feature: getattr(self, feature) for feature in feature_list}
+
     def __str__(self):
         string = ""
         for feature in feature_list:

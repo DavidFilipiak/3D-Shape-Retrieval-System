@@ -3,7 +3,7 @@ import pymeshlab
 from mesh import Mesh
 
 
-class Pipeline():
+class Pipeline:
     pipeline = []
     func_args = {}
 

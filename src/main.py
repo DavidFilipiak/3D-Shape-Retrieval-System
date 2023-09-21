@@ -66,6 +66,13 @@ def browse_button() -> None:
     print(f"The number of triangles is {num_triangles}, and the number of quads is: {num_quads}")
   '''
 
+def load_all_meshes() -> None:
+    folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+    for class_name in os.listdir(folder_name):
+        for filename in os.listdir(os.path.join(folder_name, class_name)):
+            if filename.endswith(".obj"):
+                ms.load_new_mesh(os.path.join(folder_name, class_name, filename))
+                listbox_loaded_meshes.insert(END, f"{class_name}/{filename}")
 
 def show():
     ms.show_polyscope()
@@ -87,6 +94,9 @@ def analyze_meshes() -> None:
     # TODO: Jesse --> analyze and print requested features, use function from pandas when possible
 
 
+def do_nothing():
+    pass
+
 def main() -> None:
     global ms, listbox_loaded_meshes
     ms = pymeshlab.MeshSet()
@@ -94,6 +104,12 @@ def main() -> None:
     root = Tk()
     root.title("3D Shape Retrieval")
     root.geometry("500x500")
+
+    menubar = Menu(root)
+    filemenu = Menu(menubar, tearoff=0)
+    filemenu.add_command(label="Load Mesh", command=browse_button)
+    filemenu.add_command(label="Load All (.obj)", command=browse_button)
+    filemenu.add_command(label="Load All (.csv)", command=do_nothing)
 
     button_browse = Button(text="Load Mesh", command=browse_button)
     button_browse.grid(row=0, column=1)

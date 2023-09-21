@@ -2,6 +2,7 @@ import pymeshlab
 from mesh import Mesh, meshes
 
 
+# translate into origin and scale to unit cube
 def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     # apply filters
