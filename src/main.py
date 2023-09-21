@@ -7,6 +7,9 @@ import polyscope as ps
 from mesh import Mesh, meshes
 from database import Database
 from matplotlib import pyplot as plt
+from preprocess import normalize
+from utils import count_triangles_and_quads
+from pipeline import Pipeline
 
 # GLOBAL VARIABLES
 ms = None
@@ -14,21 +17,21 @@ listbox_loaded_meshes = None
 current_dir = os.getcwd()
 selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
 selected_y = [0, 2000]  # to store the list of values for y-axis
+curr_mesh = None
 
-def count_triangles_and_quads(polygonal_face_list):
-    num_triangles = 0
-    num_quads = 0
 
-    for face in polygonal_face_list:
-        num_vertices = len(face)
-        if num_vertices == 3:
-            num_triangles += 1
-        elif num_vertices == 4:
-            num_quads += 1
-    return num_triangles, num_quads
-
+def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
+  if (vertex_num < 100 or face_num < 100):
+    print("The mesh is poorly-sampled.")
+    mesh.subdivision_surfaces_midpoint()
+    filename_save = filename.split("/")[-1].split('.')[0]
+    last_slash_index = filename.rfind('/')
+    result_path = filename[:last_slash_index]
+    ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
 
 def browse_button() -> None:
+    global curr_mesh
+
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
     ms.load_new_mesh(filename)
@@ -39,16 +42,21 @@ def browse_button() -> None:
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
     mesh.set_params(
-      num_vertices=current_mesh.vertex_number(),
-      num_faces=current_mesh.face_number(),
-      num_triangles=num_triangles,
-      num_quads=num_quads,
-      class_name=os.path.dirname(filename).split('/')[-1],
-      name=mesh_name
+        num_vertices=current_mesh.vertex_number(),
+        num_faces=current_mesh.face_number(),
+        num_triangles=num_triangles,
+        num_quads=num_quads,
+        class_name=os.path.dirname(filename).split('/')[-1],
+        name=mesh_name,
+        bb_dim_x=current_mesh.bounding_box().dim_x(),
+        bb_dim_y=current_mesh.bounding_box().dim_y(),
+        bb_dim_z=current_mesh.bounding_box().dim_z(),
     )
     meshes[mesh.name] = mesh
+    curr_mesh = mesh
     print(mesh)
 
+    #resample_mesh(ms,mesh.num_vertices, mesh.num_faces, filename)
     '''
     classType = os.path.dirname(filename).split('/')[-1]
     print(f"class type: {classType}")
@@ -60,6 +68,17 @@ def browse_button() -> None:
     num_triangles, num_quads = count_triangles_and_quads(ms.current_mesh().polygonal_face_list())
     print(f"The number of triangles is {num_triangles}, and the number of quads is: {num_quads}")
   '''
+
+
+def show():
+    ms.show_polyscope()
+
+
+def normalize_btn():
+    global ms, curr_mesh
+    p = Pipeline(ms)
+    p.add(normalize)
+    curr_mesh = p.run(curr_mesh)
 
 
 # right now this function only loads custom features from the csv_files file until real ones will go there
@@ -96,10 +115,12 @@ def main() -> None:
 
     button_browse = Button(text="Load Mesh", command=browse_button)
     button_browse.grid(row=0, column=1)
-    button_show = Button(text="Show Loaded Meshes", command=ms.show_polyscope)
+    button_show = Button(text="Show Loaded Meshes", command=show)
     button_show.grid(row=0, column=2)
     button_analyze = Button(text="Analyze", command=analyze_meshes)
     button_analyze.grid(row=0, column=3)
+    button_normalize = Button(text="Normalize", command=normalize_btn)
+    button_normalize.grid(row=0, column=4)
 
     label_loaded_meshes = Label(root, text="Loaded Meshes")
     label_loaded_meshes.grid(row=1, column=1)
