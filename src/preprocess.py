@@ -7,7 +7,7 @@ def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     # apply filters
     meshSet.compute_matrix_from_translation(traslmethod='Center on Layer BBox', alllayers=True)
-    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, alllayers=True, scalecenter='barycenter')
+    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
 
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()

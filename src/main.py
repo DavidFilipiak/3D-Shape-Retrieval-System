@@ -58,7 +58,6 @@ def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
 
 def browse_button() -> None:
     global curr_mesh
-
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
     ms.load_new_mesh(filename)
@@ -68,13 +67,17 @@ def browse_button() -> None:
 
 def load_all_meshes_obj() -> None:
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+    limit = 0
     for class_name in os.listdir(folder_name):
+        if limit > 3:
+            break
         if os.path.isfile(os.path.join(folder_name, class_name)):
             continue
         for filename in os.listdir(os.path.join(folder_name, class_name)):
             if filename.endswith(".obj"):
                 ms.load_new_mesh(os.path.join(folder_name, class_name, filename))
                 add_mesh_to_system(os.path.join(class_name, filename))
+        #limit += 1  # comment this line to disable the limit (enabled for testing purposes)
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
@@ -111,10 +114,12 @@ def show():
 
 
 def normalize_btn():
-    global ms, curr_mesh
+    global ms, curr_mesh, meshes
     p = Pipeline(ms)
     p.add(normalize)
-    curr_mesh = p.run(curr_mesh)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Normalized")
 
 
 # right now this function only loads custom features from the csv_files file until real ones will go there
@@ -148,7 +153,7 @@ def analyze_feature(feature):
     print("Analysis of Feature:", feature)
     print("Average value:", average_value)
     print("Closest mesh:", closest_row["name"].values[0], "with value:", closest_row[feature].values[0])
-    
+
 
 def draw_histogram(arr_x, arr_y):
     plt.rcParams["figure.figsize"] = [13, 6]
