@@ -6,6 +6,7 @@ import pandas as pd
 import polyscope as ps
 from mesh import Mesh, meshes
 from database import Database
+from matplotlib import pyplot as plt
 from preprocess import normalize
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
@@ -14,6 +15,8 @@ from pipeline import Pipeline
 ms = None
 listbox_loaded_meshes = None
 current_dir = os.getcwd()
+selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
+selected_y = [0, 2000]  # to store the list of values for y-axis
 curr_mesh = None
 
 
@@ -92,6 +95,21 @@ def analyze_meshes() -> None:
     features_table = database.get_table("features")
     print(features_table)
     # TODO: Jesse --> analyze and print requested features, use function from pandas when possible
+    analyze_df(features_table)
+
+
+def analyze_df(df) -> None:
+    for f in df:
+        feature = pd.Series([f]).describe()  # More descriptive statistics should go in here
+        print(feature)
+
+
+def draw_histogram(arr_x, arr_y):
+    plt.rcParams["figure.figsize"] = [7.50, 3.50]
+    plt.rcParams["figure.autolayout"] = True
+    fig = plt.bar(arr_x, arr_y)
+    plt.plot(arr_x, arr_y)
+    return fig
 
 
 def do_nothing():
@@ -125,6 +143,8 @@ def main() -> None:
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=1, columnspan=3)
 
+    button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
+    button_graph.grid(row=3, column=1)
 
     # class_type_label = Label(root, text="Class type: N/A")
     # class_type_label.grid(row=1, column=1)
