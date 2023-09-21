@@ -6,12 +6,14 @@ import pandas as pd
 import polyscope as ps
 from mesh import Mesh, meshes
 from database import Database
+from matplotlib import pyplot as plt
 
 # GLOBAL VARIABLES
 ms = None
 listbox_loaded_meshes = None
 current_dir = os.getcwd()
-
+selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
+selected_y = [0, 2000]  # to store the list of values for y-axis
 
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
