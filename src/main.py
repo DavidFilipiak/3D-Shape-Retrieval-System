@@ -3,6 +3,8 @@ from tkinter import filedialog
 import os
 import pymeshlab
 import pandas as pd
+import numpy as np
+import math
 import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
@@ -96,7 +98,7 @@ def save_all_meshes_csv() -> None:
         for feature in feature_list:
             feature_dict[feature].append(f[feature])
     df = pd.DataFrame(feature_dict)
-    database.add_table(df)
+    database.add_table(df, name=filename.split('/')[-1].split('.')[0])
     print(database.get_table)
     if not filename.endswith(".csv"):
         filename = filename + ".csv"
@@ -117,8 +119,7 @@ def normalize_btn():
 
 # right now this function only loads custom features from the csv_files file until real ones will go there
 def analyze_meshes() -> None:
-    database.load_tables("csv_files")
-    features_table = database.get_table("features")
+    features_table = database.get_table()
     print(features_table)
     # TODO: Jesse --> analyze and print requested features, use function from pandas when possible
     analyze_df(features_table)
@@ -130,11 +131,37 @@ def analyze_df(df) -> None:
         print(feature)
 
 
+def analyze_feature(feature):
+    table = database.get_table()
+    table.sort_values(feature, inplace=True)
+    values = table[feature].values
+    average_value = table[feature].mean()
+    table['temp_abs_diff'] = abs(table[feature] - average_value)
+    closest_row = table[table['temp_abs_diff'] == table['temp_abs_diff'].min()]
+    closest_row = closest_row.drop('temp_abs_diff', axis=1)[["name", feature]]
+    table.drop('temp_abs_diff', axis=1, inplace=True)
+
+    hist_y, hist_x = np.histogram(values, bins=math.ceil(math.sqrt(len(values))))
+    hist_x = hist_x.astype(int)
+    histogram = draw_histogram(hist_x[:-1], hist_y)
+
+    print("Analysis of Feature:", feature)
+    print("Average value:", average_value)
+    print("Closest mesh:", closest_row["name"].values[0], "with value:", closest_row[feature].values[0])
+    
+
 def draw_histogram(arr_x, arr_y):
-    plt.rcParams["figure.figsize"] = [7.50, 3.50]
+    plt.rcParams["figure.figsize"] = [13, 6]
     plt.rcParams["figure.autolayout"] = True
-    fig = plt.bar(arr_x, arr_y)
-    plt.plot(arr_x, arr_y)
+    width = np.mean(arr_x[1:] - arr_x[:-1]) / 2
+    fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
+    plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
+    for i in range(1, len(arr_x), 2):
+        if arr_y[i] > 0:
+            plt.text(width * i * 2, arr_y[i] + width / max(arr_y), str(arr_x[i]), fontsize=10)
+    plt.xlabel("Bin size")
+    plt.ylabel("Number of meshes")
+    plt.show()
     return fig
 
 
@@ -170,8 +197,10 @@ def main() -> None:
     # Analyze menu
     analyzemenu = Menu(menubar, tearoff=0)
     analyzemenu.add_command(label="Current Mesh", command=do_nothing)
-    analyzemenu.add_command(label="Selected Meshes", command=do_nothing)
-    analyzemenu.add_command(label="All Loaded Meshes", command=do_nothing)
+    featuresmenu = Menu(analyzemenu, tearoff=0)
+    for feature in feature_list:
+        featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
+    analyzemenu.add_cascade(label="All Loaded Meshes (.csv)", menu=featuresmenu)
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)
@@ -195,8 +224,8 @@ def main() -> None:
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
 
-    button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
-    button_graph.grid(row=3, column=1)
+    #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
+    #button_graph.grid(row=3, column=1)
 
     root.mainloop()
 
