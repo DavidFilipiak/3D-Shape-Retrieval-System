@@ -6,25 +6,14 @@ import pandas as pd
 import polyscope as ps
 from mesh import Mesh, meshes
 from database import Database
-from normalize import normalize
+from preprocess import normalize
+from utils import count_triangles_and_quads
 
 # GLOBAL VARIABLES
 ms = None
 listbox_loaded_meshes = None
 current_dir = os.getcwd()
 
-
-def count_triangles_and_quads(polygonal_face_list):
-    num_triangles = 0
-    num_quads = 0
-
-    for face in polygonal_face_list:
-        num_vertices = len(face)
-        if num_vertices == 3:
-            num_triangles += 1
-        elif num_vertices == 4:
-            num_quads += 1
-    return num_triangles, num_quads
 
 def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
   if (vertex_num < 100 or face_num < 100):

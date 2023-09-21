@@ -1,4 +1,15 @@
 meshes = {}
+feature_list = [
+    "name",
+    "class",
+    "num_vertices",
+    "num_faces",
+    "num_triangles",
+    "num_quads",
+    "bb_dim_x",
+    "bb_dim_y",
+    "bb_dim_z",
+]
 
 class Mesh():
     num_vertices = 0
@@ -7,6 +18,9 @@ class Mesh():
     num_quads = 0
     class_name = ""
     name = ""
+    bb_dim_x = 0
+    bb_dim_y = 0
+    bb_dim_z = 0
 
     def __init__(self, id):
         self.pymeshlab_id = id
