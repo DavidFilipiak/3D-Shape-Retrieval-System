@@ -113,7 +113,16 @@ def load_all_meshes_obj() -> None:
     global load_files_recursive_counter
     load_files_recursive_counter = 0
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    load_files_recursively(folder_name, ".obj", limit=30)
+    #load_files_recursively(folder_name, ".obj")
+    for class_folder in os.listdir(folder_name):
+        if os.path.isfile(os.path.join(folder_name, class_folder)):
+            continue
+        for file in os.listdir(os.path.join(folder_name, class_folder)):
+            if file.endswith(".obj"):
+                ms.load_new_mesh(os.path.join(folder_name, class_folder, file))
+                add_mesh_to_system(os.path.join(class_folder, file))
+                load_files_recursive_counter += 1
+                print(f"Loaded {load_files_recursive_counter} meshes")
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
