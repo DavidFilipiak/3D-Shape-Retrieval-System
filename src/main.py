@@ -48,13 +48,37 @@ def add_mesh_to_system(filename=""):
 
 
 def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
-  if (vertex_num < 100 or face_num < 100):
-    print("The mesh is poorly-sampled.")
-    mesh.subdivision_surfaces_midpoint()
+    TARGET = 10000
+    iter = 0
+    best_iter = TARGET
+    # Estimate number of faces to have 100+10000 vertex using Euler
+    numFaces = 100 + 2 * TARGET
+    simplification = False
     filename_save = filename.split("/")[-1].split('.')[0]
     last_slash_index = filename.rfind('/')
     result_path = filename[:last_slash_index]
-    ms.save_current_mesh(os.path.join(result_path,filename_save+"_resampled.obj"))
+
+    # Simplify the mesh. Only first simplification will be agressive
+    while (mesh.current_mesh().vertex_number() > TARGET):
+        simplification = True
+        mesh.apply_filter('simplification_quadric_edge_collapse_decimation', targetfacenum=numFaces,
+                          preservenormal=True)
+        print("Decimated to", numFaces, "faces mesh has", mesh.current_mesh().vertex_number(), "vertex")
+        # Refine our estimation to slowly converge to TARGET vertex number
+        numFaces = numFaces - (mesh.current_mesh().vertex_number() - TARGET)
+    else:
+        while (mesh.current_mesh().vertex_number() <= TARGET):
+            iter += 1
+            mesh.meshing_surface_subdivision_butterfly(iterations=iter)
+            print(f"vertice number {mesh.current_mesh().vertex_number()}")
+            if (abs(mesh.current_mesh().vertex_number() - TARGET) < best_iter):
+                best_iter = abs(mesh.current_mesh().vertex_number() - TARGET)
+                mesh.save_current_mesh(os.path.join(result_path, filename_save + "_remeshed_increase.obj"))
+            # else:
+            #     mesh.meshing_surface_subdivision_butterfly(iterations=iter -1)
+    print(f"vertice number {mesh.current_mesh().vertex_number()}")
+    if (simplification):
+        mesh.save_current_mesh(os.path.join(result_path, filename_save + "_resampled_decrease.obj"))
 
 
 def browse_button() -> None:
