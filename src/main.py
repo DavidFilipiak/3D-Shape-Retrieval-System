@@ -21,6 +21,7 @@ current_dir = os.getcwd()
 selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
 selected_y = [0, 2000]  # to store the list of values for y-axis
 curr_mesh = None
+load_files_recursive_counter = 0
 
 
 def add_mesh_to_system(filename=""):
@@ -65,19 +66,30 @@ def browse_button() -> None:
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
+def load_files_recursively(topdir, extension, limit=-1):
+    global load_files_recursive_counter
+    if limit == 0:
+        return
+    elif 0 < limit <= load_files_recursive_counter:
+        return
+    for root, dirs, files in os.walk(topdir):
+        for file in files:
+            if file.endswith(extension):
+                ms.load_new_mesh(os.path.join(root, file))
+                add_mesh_to_system(os.path.join(root.split("/")[-1], file))
+                load_files_recursive_counter += 1
+                print(f"Loaded {load_files_recursive_counter} meshes")
+                if 0 < limit <= load_files_recursive_counter:
+                    return
+        for dir in dirs:
+            load_files_recursively(os.path.join(root, dir), extension, limit)
+
+
 def load_all_meshes_obj() -> None:
+    global load_files_recursive_counter
+    load_files_recursive_counter = 0
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    limit = 0
-    for class_name in os.listdir(folder_name):
-        if limit > 3:
-            break
-        if os.path.isfile(os.path.join(folder_name, class_name)):
-            continue
-        for filename in os.listdir(os.path.join(folder_name, class_name)):
-            if filename.endswith(".obj"):
-                ms.load_new_mesh(os.path.join(folder_name, class_name, filename))
-                add_mesh_to_system(os.path.join(class_name, filename))
-        #limit += 1  # comment this line to disable the limit (enabled for testing purposes)
+    load_files_recursively(folder_name, ".obj", limit=30)
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
