@@ -176,6 +176,8 @@ def analyze_feature(feature):
     table = database.get_table()
     table.sort_values(feature, inplace=True)
     values = table[feature].values
+    max_value = table[feature].max()
+    min_value = table[feature].min()
     average_value = table[feature].mean()
     table['temp_abs_diff'] = abs(table[feature] - average_value)
     closest_row = table[table['temp_abs_diff'] == table['temp_abs_diff'].min()]
@@ -183,10 +185,17 @@ def analyze_feature(feature):
     table.drop('temp_abs_diff', axis=1, inplace=True)
 
     hist_y, hist_x = np.histogram(values, bins=math.ceil(math.sqrt(len(values))))
-    hist_x = hist_x.astype(int)
+    if max_value - min_value > 10:
+        hist_x = hist_x.astype(int)
+    else:
+        # round to 2 decimal places
+        hist_x = np.round(hist_x, 2)
+    print(hist_x, hist_y)
     histogram = draw_histogram(hist_x[:-1], hist_y)
 
     print("Analysis of Feature:", feature)
+    print("Max value:", max_value)
+    print("Min value:", min_value)
     print("Average value:", average_value)
     print("Closest mesh:", closest_row["name"].values[0], "with value:", closest_row[feature].values[0])
 
@@ -199,7 +208,7 @@ def draw_histogram(arr_x, arr_y):
     plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
     for i in range(1, len(arr_x), 2):
         if arr_y[i] > 0:
-            plt.text(width * i * 2, arr_y[i] + width / max(arr_y), str(arr_x[i]), fontsize=10)
+            plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
     plt.xlabel("Bin size")
     plt.ylabel("Number of meshes")
     plt.show()
