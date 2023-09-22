@@ -177,12 +177,22 @@ def analyze_feature(feature):
     table.sort_values(feature, inplace=True)
     values = table[feature].values
     max_value = table[feature].max()
+    row_with_max_value = table[table[feature] == max_value]
     min_value = table[feature].min()
+    row_with_min_value = table[table[feature] == min_value]
     average_value = table[feature].mean()
     table['temp_abs_diff'] = abs(table[feature] - average_value)
-    closest_row = table[table['temp_abs_diff'] == table['temp_abs_diff'].min()]
-    closest_row = closest_row.drop('temp_abs_diff', axis=1)[["name", feature]]
+    closest_avg_row = table[table['temp_abs_diff'] == table['temp_abs_diff'].min()]
+    closest_avg_row = closest_avg_row.drop('temp_abs_diff', axis=1)[["name", feature]]
     table.drop('temp_abs_diff', axis=1, inplace=True)
+
+    print("Analysis of Feature:", feature)
+    print("Max value:", max_value)
+    print("Max value mesh:", row_with_max_value["name"].values[0], "with value:", row_with_max_value[feature].values[0])
+    print("Min value:", min_value)
+    print("Min value mesh:", row_with_min_value["name"].values[0], "with value:", row_with_min_value[feature].values[0])
+    print("Average value:", average_value)
+    print("Closest mesh:", closest_avg_row["name"].values[0], "with value:", closest_avg_row[feature].values[0])
 
     hist_y, hist_x = np.histogram(values, bins=math.ceil(math.sqrt(len(values))))
     if max_value - min_value > 10:
@@ -190,14 +200,7 @@ def analyze_feature(feature):
     else:
         # round to 2 decimal places
         hist_x = np.round(hist_x, 2)
-    print(hist_x, hist_y)
     histogram = draw_histogram(hist_x[:-1], hist_y)
-
-    print("Analysis of Feature:", feature)
-    print("Max value:", max_value)
-    print("Min value:", min_value)
-    print("Average value:", average_value)
-    print("Closest mesh:", closest_row["name"].values[0], "with value:", closest_row[feature].values[0])
 
 
 def draw_histogram(arr_x, arr_y):
@@ -247,14 +250,17 @@ def main() -> None:
     # Analyze menu
     analyzemenu = Menu(menubar, tearoff=0)
     analyzemenu.add_command(label="Current Mesh", command=do_nothing)
+    analyzemenu.add_separator()
     featuresmenu = Menu(analyzemenu, tearoff=0)
     for feature in feature_list:
-        featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
+        if feature not in ['name', 'class_name']:
+            featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
     analyzemenu.add_cascade(label="All Loaded Meshes (.csv)", menu=featuresmenu)
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)
     preprocessmenu.add_command(label="Full", command=do_nothing)
+    preprocessmenu.add_separator()
     preprocessmenu.add_command(label="Normalize", command=normalize_btn)
     preprocessmenu.add_command(label="Resample", command=do_nothing)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
