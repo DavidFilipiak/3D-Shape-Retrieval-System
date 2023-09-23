@@ -21,7 +21,6 @@ current_dir = os.getcwd()
 selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
 selected_y = [0, 2000]  # to store the list of values for y-axis
 curr_mesh = None
-load_files_recursive_counter = 0
 
 
 def add_mesh_to_system(filename=""):
@@ -90,39 +89,33 @@ def browse_button() -> None:
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
-def load_files_recursively(topdir, extension, limit=-1):
-    global load_files_recursive_counter
+def load_files_recursively(topdir, extension, limit=-1, count=0) -> int:
     if limit == 0:
-        return
-    elif 0 < limit <= load_files_recursive_counter:
-        return
+        return count
+    elif 0 < limit <= count:
+        return count
+
     for root, dirs, files in os.walk(topdir):
         for file in files:
             if file.endswith(extension):
-                ms.load_new_mesh(os.path.join(root, file))
-                add_mesh_to_system(os.path.join(root.split("/")[-1], file))
-                load_files_recursive_counter += 1
-                print(f"Loaded {load_files_recursive_counter} meshes")
-                if 0 < limit <= load_files_recursive_counter:
-                    return
-        for dir in dirs:
-            load_files_recursively(os.path.join(root, dir), extension, limit)
+                if 0 < limit <= count:
+                    return count
+                new_path = os.path.join(root, file).replace("\\", "/")
+                ms.load_new_mesh(new_path)
+                add_mesh_to_system(new_path)
+                count += 1
+
+        for _dir in dirs:
+            count = load_files_recursively(os.path.join(root, _dir), extension, limit, count)
+    return count
 
 
 def load_all_meshes_obj() -> None:
-    global load_files_recursive_counter
-    load_files_recursive_counter = 0
+    LIMIT = -1
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    #load_files_recursively(folder_name, ".obj")
-    for class_folder in os.listdir(folder_name):
-        if os.path.isfile(os.path.join(folder_name, class_folder)):
-            continue
-        for file in os.listdir(os.path.join(folder_name, class_folder)):
-            if file.endswith(".obj"):
-                ms.load_new_mesh(os.path.join(folder_name, class_folder, file))
-                add_mesh_to_system(os.path.join(class_folder, file))
-                load_files_recursive_counter += 1
-                print(f"Loaded {load_files_recursive_counter} meshes")
+    count = load_files_recursively(folder_name, ".obj", limit=LIMIT)
+    if count != len(ms):
+        raise Exception(f"A problem while loading meshes.")
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
@@ -165,20 +158,6 @@ def normalize_btn():
     normalized_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
     print("Normalized")
-
-
-# right now this function only loads custom features from the csv_files file until real ones will go there
-def analyze_meshes() -> None:
-    features_table = database.get_table()
-    print(features_table)
-    # TODO: Jesse --> analyze and print requested features, use function from pandas when possible
-    analyze_df(features_table)
-
-
-def analyze_df(df) -> None:
-    for f in df:
-        feature = pd.Series([f]).describe()  # More descriptive statistics should go in here
-        print(feature)
 
 
 def analyze_feature(feature):
@@ -280,9 +259,6 @@ def main() -> None:
     current_mesh_label.grid(row=0, column=0)
     current_csv_label = Label(root, text="Current CSV table")
     current_csv_label.grid(row=0, column=1)
-
-    button_analyze = Button(text="Analyze", command=analyze_meshes)
-    button_analyze.grid(row=0, column=3)
 
     label_loaded_meshes = Label(root, text="Loaded meshes")
     label_loaded_meshes.grid(row=1, column=0)
