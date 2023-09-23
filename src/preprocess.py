@@ -1,5 +1,62 @@
+import os
+
 import pymeshlab
+from pymeshlab import AbsoluteValue
+
 from mesh import Mesh, meshes
+'''
+REMESH -  if vertices > TARGET reduce them
+          if vertices <= TARGET reduce them
+'''
+
+def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
+    TARGET = 10000
+    iter = 0
+    # Estimate number of faces to have 100+10000 vertex using Euler
+    numFaces = 100 + 2 * TARGET
+    target_edge_length = 0.01
+    previous_vertex_count = None
+    consecutive_constant_count = 0
+    max_consecutive_constant_iterations = 1
+    while (meshSet.current_mesh().vertex_number() <= TARGET):
+        iter += 1
+        # try:
+        #     meshSet.meshing_surface_subdivision_butterfly(iterations=iter)
+        # except:
+        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
+        # meshSet.repair_non_manifold_edges()
+
+        print(f"vertice number {meshSet.current_mesh().vertex_number()}")
+        current_vertex_count = meshSet.current_mesh().vertex_number()
+        print(f"Vertex number: {current_vertex_count}")
+        # Check if the current vertex count is the same as the previous vertex count
+        if current_vertex_count == previous_vertex_count:
+            consecutive_constant_count += 1
+        else:
+            consecutive_constant_count = 0
+        # If the vertex count has remained constant for two iterations, break the loop
+        if consecutive_constant_count >= max_consecutive_constant_iterations:
+            print('breaking from loop')
+            break
+
+        # Update the previous vertex count
+        previous_vertex_count = current_vertex_count
+        # Simplify the mesh. Only first simplification will be agressive
+    while (meshSet.current_mesh().vertex_number() > TARGET):
+        meshSet.meshing_repair_non_manifold_edges()
+        print(meshSet.current_mesh().label())
+        meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces,
+                             preservenormal=True)
+        print("Decimated to", numFaces, "faces mesh has", meshSet.current_mesh().vertex_number(), "vertex")
+        # Refine our estimation to slowly converge to TARGET vertex number
+        numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
+    meshSet.save_current_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
+    current_mesh = meshSet.current_mesh()
+    mesh.set_params(
+        num_faces =current_mesh.vertex_number(),
+        num_vertices=current_mesh.face_number()
+    )
+    return mesh
 
 
 # translate into origin and scale to unit cube

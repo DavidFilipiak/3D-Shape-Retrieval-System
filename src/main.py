@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import normalize
+from preprocess import normalize, resample_mesh
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -44,40 +44,6 @@ def add_mesh_to_system(filename=""):
     meshes[mesh.name] = mesh
     curr_mesh = mesh
     current_mesh_label.config(text=f"Current mesh: {mesh.name}")
-
-
-def resample_mesh(mesh, vertex_num, face_num,filename) -> None:
-    TARGET = 10000
-    iter = 0
-    best_iter = TARGET
-    # Estimate number of faces to have 100+10000 vertex using Euler
-    numFaces = 100 + 2 * TARGET
-    simplification = False
-    filename_save = filename.split("/")[-1].split('.')[0]
-    last_slash_index = filename.rfind('/')
-    result_path = filename[:last_slash_index]
-
-    # Simplify the mesh. Only first simplification will be agressive
-    while (mesh.current_mesh().vertex_number() > TARGET):
-        simplification = True
-        mesh.apply_filter('simplification_quadric_edge_collapse_decimation', targetfacenum=numFaces,
-                          preservenormal=True)
-        print("Decimated to", numFaces, "faces mesh has", mesh.current_mesh().vertex_number(), "vertex")
-        # Refine our estimation to slowly converge to TARGET vertex number
-        numFaces = numFaces - (mesh.current_mesh().vertex_number() - TARGET)
-    else:
-        while (mesh.current_mesh().vertex_number() <= TARGET):
-            iter += 1
-            mesh.meshing_surface_subdivision_butterfly(iterations=iter)
-            print(f"vertice number {mesh.current_mesh().vertex_number()}")
-            if (abs(mesh.current_mesh().vertex_number() - TARGET) < best_iter):
-                best_iter = abs(mesh.current_mesh().vertex_number() - TARGET)
-                mesh.save_current_mesh(os.path.join(result_path, filename_save + "_remeshed_increase.obj"))
-            # else:
-            #     mesh.meshing_surface_subdivision_butterfly(iterations=iter -1)
-    print(f"vertice number {mesh.current_mesh().vertex_number()}")
-    if (simplification):
-        mesh.save_current_mesh(os.path.join(result_path, filename_save + "_resampled_decrease.obj"))
 
 
 def browse_button() -> None:
@@ -206,12 +172,20 @@ def draw_histogram(arr_x, arr_y):
     return fig
 
 
+def do_resample():
+    global ms, curr_mesh,meshes
+    p = Pipeline(ms)
+    rec_path = os.path.join(os.path.dirname(current_dir),'ShapeDatabase_INFOMR-master')
+    p.add(resample_mesh, result_filename= rec_path)
+    remeshed_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in remeshed_meshes}
+    print("Remeshed")
 def do_nothing():
     pass
 
-
 def main() -> None:
-    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename
+    filename = ''
     ms = pymeshlab.MeshSet()
     database = Database()
 
@@ -250,7 +224,7 @@ def main() -> None:
     preprocessmenu.add_command(label="Full", command=do_nothing)
     preprocessmenu.add_separator()
     preprocessmenu.add_command(label="Normalize", command=normalize_btn)
-    preprocessmenu.add_command(label="Resample", command=do_nothing)
+    preprocessmenu.add_command(label="Resample", command=do_resample)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
     root.config(menu=menubar)
