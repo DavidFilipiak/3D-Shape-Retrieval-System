@@ -14,19 +14,12 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
     numFaces = 100 + 2 * TARGET
-    target_edge_length = 0.01
+    target_edge_length = 0.001
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
-    while (meshSet.current_mesh().vertex_number() <= TARGET):
-        iter += 1
-        # try:
-        #     meshSet.meshing_surface_subdivision_butterfly(iterations=iter)
-        # except:
+    while (meshSet.current_mesh().vertex_number() <= 10*TARGET):
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
-        # meshSet.repair_non_manifold_edges()
-
-        print(f"vertice number {meshSet.current_mesh().vertex_number()}")
         current_vertex_count = meshSet.current_mesh().vertex_number()
         print(f"Vertex number: {current_vertex_count}")
         # Check if the current vertex count is the same as the previous vertex count
