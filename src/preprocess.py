@@ -1,3 +1,4 @@
+import math
 import os
 
 import pymeshlab
@@ -14,19 +15,12 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
     numFaces = 100 + 2 * TARGET
-    target_edge_length = 0.01
+    target_edge_length = 0.001
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
-    while (meshSet.current_mesh().vertex_number() <= TARGET):
-        iter += 1
-        # try:
-        #     meshSet.meshing_surface_subdivision_butterfly(iterations=iter)
-        # except:
+    while (meshSet.current_mesh().vertex_number() <= 10*TARGET):
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
-        # meshSet.repair_non_manifold_edges()
-
-        print(f"vertice number {meshSet.current_mesh().vertex_number()}")
         current_vertex_count = meshSet.current_mesh().vertex_number()
         print(f"Vertex number: {current_vertex_count}")
         # Check if the current vertex count is the same as the previous vertex count
@@ -51,6 +45,58 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         # Refine our estimation to slowly converge to TARGET vertex number
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
     meshSet.save_current_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
+    current_mesh = meshSet.current_mesh()
+    mesh.set_params(
+        num_faces =current_mesh.vertex_number(),
+        num_vertices=current_mesh.face_number()
+    )
+    return mesh
+
+
+
+def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
+    TARGET_LOW = 8000
+    TARGET_HIGH = 13000
+    iter = 0
+
+    target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
+    previous_vertex_count = meshSet.current_mesh().vertex_number()
+
+    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
+        iter += 1
+        print(f"iteration {iter}, target_edge_length {target_edge_length}")
+        # Do just one remeshing iteration per one while iteration
+        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1)
+        # meshSet.repair_non_manifold_edges()
+        print(f"Vertex number: {previous_vertex_count}")
+        current_vertex_count = meshSet.current_mesh().vertex_number()
+        print(f"Vertex number: {current_vertex_count}")
+        # Check if the current vertex count is the same as the previous vertex count
+        var = max(0.0, math.log10(current_vertex_count) - 2)
+        if current_vertex_count < TARGET_LOW or current_vertex_count > TARGET_HIGH:
+            gap = 1000
+        else:
+            gap = 100
+        #print(gap)
+        rate_of_change = 1/10
+        diff_low, diff_high = current_vertex_count - TARGET_LOW, TARGET_HIGH - current_vertex_count
+
+
+        if current_vertex_count - gap <= previous_vertex_count <= current_vertex_count + gap:
+            if current_vertex_count < TARGET_LOW:
+                print("IF 1")
+                target_edge_length *= (1 - rate_of_change)
+            elif current_vertex_count > TARGET_HIGH:
+                print("IF 2")
+                target_edge_length *= (1 + rate_of_change)
+            else:
+                print("IF 3")
+        else:
+            print("IF 4")
+
+        # Update the previous vertex count
+        previous_vertex_count = current_vertex_count
+
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
         num_faces =current_mesh.vertex_number(),
