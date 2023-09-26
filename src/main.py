@@ -91,7 +91,11 @@ def load_all_meshes_csv() -> None:
     database.load_table(filename)
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
-
+def clear_all_meshes_obj() -> None:
+    database.clear_table()
+    ms.clear()
+    label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+    listbox_loaded_meshes.delete(0,END)
 def save_current_mesh_obj() -> None:
     filename = filedialog.asksaveasfilename(title="Mesh save", initialdir=current_dir, filetypes=[('Mesh files', '*.obj')])
     ms.save_current_mesh(filename)
@@ -199,6 +203,8 @@ def main() -> None:
     filemenu.add_command(label="Load Mesh (.obj)", command=browse_button)
     filemenu.add_command(label="Load All (.obj)", command=load_all_meshes_obj)
     filemenu.add_command(label="Load All (.csv)", command=load_all_meshes_csv)
+
+    filemenu.add_command(label="Clear All (.obj)", command=clear_all_meshes_obj)
     filemenu.add_separator()
     filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
     filemenu.add_command(label="Save All (.csv)", command=save_all_meshes_csv)
@@ -238,7 +244,6 @@ def main() -> None:
     label_loaded_meshes.grid(row=1, column=0)
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
-
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)
 
