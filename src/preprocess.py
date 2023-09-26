@@ -5,7 +5,7 @@ import numpy as np
 import pymeshlab
 from pymeshlab import AbsoluteValue
 from scipy.spatial.transform import Rotation as R
-from utils import get_barycenter, dot
+from utils import get_barycenter, dot, sign
 from mesh import Mesh, meshes
 '''
 REMESH -  if vertices > TARGET reduce them
@@ -279,5 +279,38 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     print(eigenvalues.shape, eigenvalues)
     print(eigenvectors.shape, eigenvectors)
     """
+
+    return mesh
+
+
+
+def flip(mesh:Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
+    vertex_matrix = meshSet.current_mesh().vertex_matrix()
+    face_matrix = meshSet.current_mesh().face_matrix()
+    face_centres = np.ndarray((len(face_matrix), 3))
+    for i, face in enumerate(face_matrix):
+        xs, ys, zs = [], [], []
+        for v in face:
+            xs.append(vertex_matrix[v][0])
+            ys.append(vertex_matrix[v][1])
+            zs.append(vertex_matrix[v][2])
+        x = np.mean(xs)
+        y = np.mean(ys)
+        z = np.mean(zs)
+        face_centres[i] = np.array([x, y, z])
+
+    fx, fy, fz = 0, 0, 0
+    for center in face_centres:
+        fx += sign(center[0]) * center[0]**2
+        fy += sign(center[1]) * center[1]**2
+        fz += sign(center[2]) * center[2]**2
+
+    transform_matrix = np.eye(4)
+    transform_matrix[0, 0] = sign(fx)
+    transform_matrix[1, 1] = sign(fy)
+    transform_matrix[2, 2] = sign(fz)
+
+    meshSet.set_matrix(transformmatrix=transform_matrix)
+    #print(face_matrix.shape, face_matrix)
 
     return mesh

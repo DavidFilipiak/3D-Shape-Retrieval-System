@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import normalize, resample_mesh, align
+from preprocess import normalize, resample_mesh, align, flip
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -208,6 +208,15 @@ def do_align():
     print("Aligned")
 
 
+def do_flip():
+    global meshes
+    p = Pipeline(ms)
+    p.add(flip)
+    aligned_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in aligned_meshes}
+    print("Flipped")
+
+
 def do_nothing():
     pass
 
@@ -227,7 +236,7 @@ def main() -> None:
     filemenu.add_command(label="Load Mesh (.obj)", command=browse_button)
     filemenu.add_command(label="Load All (.obj)", command=load_all_meshes_obj)
     filemenu.add_command(label="Load All (.csv)", command=load_all_meshes_csv)
-
+    filemenu.add_separator()
     filemenu.add_command(label="Clear All (.obj)", command= clear_all_meshes_obj)
     filemenu.add_command(label="Clear Selected (.obj)", command=clear_selected_meshes_obj)
     filemenu.add_separator()
@@ -257,6 +266,7 @@ def main() -> None:
     preprocessmenu.add_command(label="Normalize", command=normalize_btn)
     preprocessmenu.add_command(label="Resample", command=do_resample)
     preprocessmenu.add_command(label="Align", command=do_align)
+    preprocessmenu.add_command(label="Flip", command=do_flip)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
     root.config(menu=menubar)

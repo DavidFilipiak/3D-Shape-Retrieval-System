@@ -17,3 +17,10 @@ def get_barycenter(vertex_matrix):
 
 def dot(a, b):
     return sum([a[i] * b[i] for i in range(len(a))])
+
+def sign(n):
+    if n < 0:
+        return -1
+    if n > 0:
+        return 1
+    return 0
