@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import normalize, resample_mesh
+from preprocess import normalize, resample_mesh, align
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -180,6 +180,17 @@ def do_resample():
     remeshed_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in remeshed_meshes}
     print("Remeshed")
+
+
+def do_align():
+    global meshes
+    p = Pipeline(ms)
+    p.add(align)
+    aligned_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in aligned_meshes}
+    print("Aligned")
+
+
 def do_nothing():
     pass
 
@@ -225,6 +236,7 @@ def main() -> None:
     preprocessmenu.add_separator()
     preprocessmenu.add_command(label="Normalize", command=normalize_btn)
     preprocessmenu.add_command(label="Resample", command=do_resample)
+    preprocessmenu.add_command(label="Align", command=do_align)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
     root.config(menu=menubar)

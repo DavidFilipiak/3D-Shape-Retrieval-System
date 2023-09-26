@@ -1,8 +1,10 @@
 import math
 import os
+import numpy as np
 
 import pymeshlab
 from pymeshlab import AbsoluteValue
+from scipy.spatial.transform import Rotation as R
 
 from mesh import Mesh, meshes
 '''
@@ -119,4 +121,80 @@ def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
     )
+    return mesh
+
+
+def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
+    print("ORIGINAL MESH")
+    vertex_matrix = meshSet.current_mesh().vertex_matrix()
+    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
+    print(covariance_matrix.shape, covariance_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+    print(eigenvalues.shape, eigenvalues)
+    print(eigenvectors.shape, eigenvectors)
+
+    principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
+    principal_components.sort(key=lambda x: x[0], reverse=True)
+    #print(principal_components)
+
+    print('MY APPROACH MESH')
+    def get_dir_angles_of_vector(vector, axis):
+        zeros = np.zeros(len(vector))
+        zeros[axis] = 1
+        print("dot product", np.dot(vector, zeros))
+        print("norms", np.linalg.norm(vector), np.linalg.norm(zeros))
+        return math.acos(np.dot(vector, zeros) / (np.linalg.norm(vector) * np.linalg.norm(zeros)))
+    x_angle = get_dir_angles_of_vector(principal_components[0][1], 0)
+    y_angle = get_dir_angles_of_vector(principal_components[1][1], 1)
+    z_angle = get_dir_angles_of_vector(principal_components[2][1], 2)
+    print(x_angle, y_angle, z_angle)
+
+    r_x = R.from_rotvec(x_angle * np.array([0, 1, 1])).as_matrix()
+    r_y = R.from_rotvec(y_angle * np.array([0, 1, 0])).as_matrix()
+    r_z = R.from_rotvec(z_angle * np.array([0, 0, 1])).as_matrix()
+
+    r_x = np.pad(r_x, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    print("r_x", r_x)
+    r_y = np.pad(r_y, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    r_z = np.pad(r_z, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+
+    meshSet.set_matrix(transformmatrix=r_x)
+    #meshSet.set_matrix(transformmatrix=r_y)
+    #meshSet.set_matrix(transformmatrix=r_z)
+
+    #transform_matrix = np.identity(4)
+    #transform_matrix[:3, :3] = np.matmul(np.matmul(r_x, r_y), r_z)
+    #print(transform_matrix)
+
+    #meshSet.set_matrix(transformmatrix=transform_matrix)
+
+    """
+    x_angle = np.degrees(x_angle)
+    y_angle = np.degrees(y_angle)
+    z_angle = np.degrees(z_angle)
+    print(x_angle, y_angle, z_angle)
+
+    meshSet.compute_matrix_from_rotation(angle=x_angle, rotcenter='barycenter', rotaxis='X axis')
+    meshSet.compute_matrix_from_rotation(angle=y_angle, rotcenter='barycenter', rotaxis='Y axis')
+    #meshSet.compute_matrix_from_rotation(angle=z_angle, rotcenter='barycenter', rotaxis='Z axis')
+    """
+    #meshSet.compute_matrix_by_principal_axis()
+    vertex_matrix = meshSet.current_mesh().vertex_matrix()
+    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
+    print(covariance_matrix.shape, covariance_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+    print(eigenvalues.shape, eigenvalues)
+    print(eigenvectors.shape, eigenvectors)
+
+    '''
+    print("CHEATING")
+    meshSet.compute_matrix_by_principal_axis()
+    vertex_matrix = meshSet.current_mesh().vertex_matrix()
+    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
+    print(covariance_matrix.shape, covariance_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+    print(eigenvalues.shape, eigenvalues)
+    print(eigenvectors.shape, eigenvectors)
+    '''
+
     return mesh
