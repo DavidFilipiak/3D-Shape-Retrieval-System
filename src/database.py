@@ -38,3 +38,5 @@ class Database:
 
     def save_table(self, path: str) -> None:
         self.table.to_csv(path, index=False)
+    def clear_table(self) ->None:
+        self.table = None

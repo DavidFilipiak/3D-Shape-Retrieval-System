@@ -46,6 +46,7 @@ def add_mesh_to_system(filename=""):
     current_mesh_label.config(text=f"Current mesh: {mesh.name}")
 
 
+
 def browse_button() -> None:
     global curr_mesh
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
@@ -91,6 +92,22 @@ def load_all_meshes_csv() -> None:
     database.load_table(filename)
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
+def clear_all_meshes_obj() -> None:
+    database.clear_table()
+    ms.clear()
+    label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+    listbox_loaded_meshes.delete(0,END)
+
+def clear_selected_meshes_obj() -> None:
+    global ms,data
+    for mesh in ms:
+        if mesh.label() == data.split('/')[-1]:
+            ms.set_current_mesh(mesh.id())
+            ms.delete_current_mesh()
+            listbox_loaded_meshes.delete(ACTIVE)
+            break
+    # ms.delete_current_mesh()
+    label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 def save_current_mesh_obj() -> None:
     filename = filedialog.asksaveasfilename(title="Mesh save", initialdir=current_dir, filetypes=[('Mesh files', '*.obj')])
@@ -195,7 +212,7 @@ def do_nothing():
     pass
 
 def main() -> None:
-    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename,data
     filename = ''
     ms = pymeshlab.MeshSet()
     database = Database()
@@ -210,6 +227,9 @@ def main() -> None:
     filemenu.add_command(label="Load Mesh (.obj)", command=browse_button)
     filemenu.add_command(label="Load All (.obj)", command=load_all_meshes_obj)
     filemenu.add_command(label="Load All (.csv)", command=load_all_meshes_csv)
+
+    filemenu.add_command(label="Clear All (.obj)", command= clear_all_meshes_obj)
+    filemenu.add_command(label="Clear Selected (.obj)", command=clear_selected_meshes_obj)
     filemenu.add_separator()
     filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
     filemenu.add_command(label="Save All (.csv)", command=save_all_meshes_csv)
@@ -250,11 +270,19 @@ def main() -> None:
     label_loaded_meshes.grid(row=1, column=0)
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
-
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)
+    def callback(event):
+        global data
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            data = event.widget.get(index)
+            current_mesh_label.configure(text=f"Current mesh:{data}")
 
+    listbox_loaded_meshes.bind("<<ListboxSelect>>", callback)
     root.mainloop()
+
 
 
 if __name__ == "__main__":
