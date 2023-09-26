@@ -107,12 +107,15 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
     return mesh
 
 
-# translate into origin and scale to unit cube
-def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
-
+def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
-    meshSet.compute_matrix_from_translation(traslmethod='Center on Layer BBox', alllayers=True)
-    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
+    # meshSet.compute_matrix_from_translation(traslmethod='Center on Layer BBox', alllayers=True)
+
+    barycenter = get_barycenter(meshSet.current_mesh().vertex_matrix())
+    transform_matrix = np.eye(4)
+    transform_matrix[0:3, 3] = -barycenter
+
+    meshSet.set_matrix(transformmatrix=transform_matrix)
 
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()
@@ -122,6 +125,30 @@ def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
         bb_dim_z=current_mesh.bounding_box().dim_z(),
     )
     return mesh
+
+
+def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
+    # apply filters
+    # meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
+
+    bb = meshSet.current_mesh().bounding_box()
+    min_point = bb.min()
+    max_point = bb.max()
+    scale = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    transform_matrix = np.eye(4) * (1 / scale)
+    transform_matrix[3, 3] = 1
+
+    meshSet.set_matrix(transformmatrix=transform_matrix)
+
+    # change parameters of current mesh
+    current_mesh = meshSet.current_mesh()
+    mesh.set_params(
+        bb_dim_x=current_mesh.bounding_box().dim_x(),
+        bb_dim_y=current_mesh.bounding_box().dim_y(),
+        bb_dim_z=current_mesh.bounding_box().dim_z(),
+    )
+    return mesh
+
 
 # https://stackoverflow.com/questions/67017134/find-rotation-matrix-to-align-two-vectors
 # https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
@@ -196,14 +223,15 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     #rot_matrix = rot_matrix_x_axis + rot_matrix_y_axis + rot_matrix_z_axis
 
-    #print(rot_matrix_x_axis)
+    print(rot_matrix_x_axis)
     #print(np.dot(rot_matrix_x_axis, principal_components[0][1]))
     #rot_matrix_y_axis = align_vectors(principal_components[1][1], np.array([0, 1, 0]))
 
     print('MY APPROACH MESH')
-    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
-    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
     #meshSet.set_matrix(transformmatrix=rot_matrix_z_axis)
+    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
+    #meshSet.set_matrix(transformmatrix=rot_matrix_y_axis)
+
 
     updated_coords = np.ndarray((len(vertex_matrix), 3))
     barycenter = get_barycenter(vertex_matrix)
@@ -281,7 +309,6 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     """
 
     return mesh
-
 
 
 def flip(mesh:Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:

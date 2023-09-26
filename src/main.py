@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import normalize, resample_mesh, align, flip
+from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -134,13 +134,22 @@ def show():
     ms.show_polyscope()
 
 
-def normalize_btn():
+def do_translate():
     global ms, curr_mesh, meshes
     p = Pipeline(ms)
-    p.add(normalize)
+    p.add(translate_to_origin)
     normalized_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
-    print("Normalized")
+    print("Moved to origin")
+
+
+def do_scale():
+    global meshes
+    p = Pipeline(ms)
+    p.add(scale_to_unit_cube)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Scaled to unit cube")
 
 
 def analyze_feature(feature):
@@ -263,10 +272,11 @@ def main() -> None:
     preprocessmenu = Menu(menubar, tearoff=0)
     preprocessmenu.add_command(label="Full", command=do_nothing)
     preprocessmenu.add_separator()
-    preprocessmenu.add_command(label="Normalize", command=normalize_btn)
     preprocessmenu.add_command(label="Resample", command=do_resample)
+    preprocessmenu.add_command(label="Translate", command=do_translate)
     preprocessmenu.add_command(label="Align", command=do_align)
     preprocessmenu.add_command(label="Flip", command=do_flip)
+    preprocessmenu.add_command(label="Scale", command=do_scale)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
     root.config(menu=menubar)
