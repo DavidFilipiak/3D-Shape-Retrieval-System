@@ -1,4 +1,4 @@
-
+import numpy as np
 
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
@@ -11,3 +11,9 @@ def count_triangles_and_quads(polygonal_face_list):
         elif num_vertices == 4:
             num_quads += 1
     return num_triangles, num_quads
+
+def get_barycenter(vertex_matrix):
+    return np.round(np.mean(vertex_matrix, axis=0), 3)
+
+def dot(a, b):
+    return sum([a[i] * b[i] for i in range(len(a))])

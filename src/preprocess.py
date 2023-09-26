@@ -5,7 +5,7 @@ import numpy as np
 import pymeshlab
 from pymeshlab import AbsoluteValue
 from scipy.spatial.transform import Rotation as R
-
+from utils import get_barycenter, dot
 from mesh import Mesh, meshes
 '''
 REMESH -  if vertices > TARGET reduce them
@@ -123,10 +123,53 @@ def normalize(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     )
     return mesh
 
+# https://stackoverflow.com/questions/67017134/find-rotation-matrix-to-align-two-vectors
+# https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+def align_vectors(a, b):
+    print("a", a)
+    print("b", b)
+
+    b = b / np.linalg.norm(b)  # normalize a
+    a = a / np.linalg.norm(a)  # normalize b
+    v = np.cross(a, b)
+    s = np.linalg.norm(v)
+    c = np.dot(a, b)
+
+    v1, v2, v3 = v
+    h = (1 - c) / (s ** 2)
+
+    Vmat = np.array([[0, -v3, v2],
+                     [v3, 0, -v1],
+                     [-v2, v1, 0]])
+
+    R = np.eye(3, dtype=np.float64) + Vmat + (Vmat.dot(Vmat) * h)
+    return R
+
+def find_rotation_matrix(A, B):
+    # Center the points (subtract the mean)
+    centroid_A = np.mean(A, axis=0)
+    centroid_B = np.mean(B, axis=0)
+    centered_A = A - centroid_A
+    centered_B = B - centroid_B
+
+    # Calculate the covariance matrix H
+    H = np.dot(centered_A.T, centered_B)
+
+    # Use SVD to find the rotation matrix R
+    U, _, Vt = np.linalg.svd(H)
+    R = np.dot(U, Vt)
+
+    # Ensure that R has a valid determinant (to prevent reflection)
+    if np.linalg.det(R) < 0:
+        Vt[2, :] *= -1
+        R = np.dot(U, Vt)
+
+    return R
 
 def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     print("ORIGINAL MESH")
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
+    print(vertex_matrix.shape, vertex_matrix)
     covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
     print(covariance_matrix.shape, covariance_matrix)
     eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
@@ -135,9 +178,59 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
     principal_components.sort(key=lambda x: x[0], reverse=True)
-    #print(principal_components)
+    print("principal components", principal_components)
+    rot_matrix_x_axis = align_vectors(principal_components[0][1], np.array([1, 0, 0]))
+    print(rot_matrix_x_axis.dot(principal_components[0][1]))
+    rot_matrix_x_axis = np.pad(rot_matrix_x_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    rot_matrix_x_axis[3, 3] = 1
+
+    rot_matrix_y_axis = align_vectors(principal_components[1][1], np.array([0, 1, 0]))
+    print(rot_matrix_y_axis.dot(principal_components[1][1]))
+    rot_matrix_y_axis = np.pad(rot_matrix_y_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    rot_matrix_y_axis[3, 3] = 1
+
+    rot_matrix_z_axis = align_vectors(principal_components[2][1], np.array([0, 0, 1]))
+    print(rot_matrix_z_axis.dot(principal_components[2][1]))
+    rot_matrix_z_axis = np.pad(rot_matrix_z_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    rot_matrix_z_axis[3, 3] = 1
+
+    #rot_matrix = rot_matrix_x_axis + rot_matrix_y_axis + rot_matrix_z_axis
+
+    #print(rot_matrix_x_axis)
+    #print(np.dot(rot_matrix_x_axis, principal_components[0][1]))
+    #rot_matrix_y_axis = align_vectors(principal_components[1][1], np.array([0, 1, 0]))
 
     print('MY APPROACH MESH')
+    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
+    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
+    #meshSet.set_matrix(transformmatrix=rot_matrix_z_axis)
+
+    updated_coords = np.ndarray((len(vertex_matrix), 3))
+    barycenter = get_barycenter(vertex_matrix)
+    print("barycenter", barycenter)
+    print("len e1", np.linalg.norm(principal_components[0][1]))
+    print("len e2", np.linalg.norm(principal_components[1][1]))
+    for i, vertex in enumerate(vertex_matrix):
+        x = dot(vertex - barycenter, eigenvectors[0])
+        y = dot(vertex - barycenter, eigenvectors[1])
+        z = dot(vertex - barycenter, np.cross(eigenvectors[0], eigenvectors[1]))
+        updated_coords[i] = np.array([x, y, z])
+        print(updated_coords[i])
+
+    rotation_matrix = find_rotation_matrix(updated_coords, vertex_matrix)
+    rotation_matrix = np.pad(rotation_matrix, ((0, 1), (0, 1)), mode='constant', constant_values=0)
+    print("rotation matrix", rotation_matrix)
+    rotation_matrix[3, 3] = 1
+    meshSet.set_matrix(transformmatrix=rotation_matrix)
+
+    print("dot", np.transpose(updated_coords).dot(vertex_matrix))
+    covariance_matrix = np.cov(np.transpose(updated_coords))  # transpose, so that we get a 3x3 instead of nxn matrix
+    print(covariance_matrix.shape, covariance_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+    print(eigenvalues.shape, eigenvalues)
+    print(eigenvectors.shape, eigenvectors)
+
+    """
     def get_dir_angles_of_vector(vector, axis):
         zeros = np.zeros(len(vector))
         zeros[axis] = 1
@@ -167,7 +260,7 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     #print(transform_matrix)
 
     #meshSet.set_matrix(transformmatrix=transform_matrix)
-
+    """
     """
     x_angle = np.degrees(x_angle)
     y_angle = np.degrees(y_angle)
@@ -177,7 +270,7 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     meshSet.compute_matrix_from_rotation(angle=x_angle, rotcenter='barycenter', rotaxis='X axis')
     meshSet.compute_matrix_from_rotation(angle=y_angle, rotcenter='barycenter', rotaxis='Y axis')
     #meshSet.compute_matrix_from_rotation(angle=z_angle, rotcenter='barycenter', rotaxis='Z axis')
-    """
+    
     #meshSet.compute_matrix_by_principal_axis()
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
     covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
@@ -185,16 +278,6 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
     print(eigenvalues.shape, eigenvalues)
     print(eigenvectors.shape, eigenvectors)
-
-    '''
-    print("CHEATING")
-    meshSet.compute_matrix_by_principal_axis()
-    vertex_matrix = meshSet.current_mesh().vertex_matrix()
-    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
-    print(covariance_matrix.shape, covariance_matrix)
-    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
-    print(eigenvalues.shape, eigenvalues)
-    print(eigenvectors.shape, eigenvectors)
-    '''
+    """
 
     return mesh
