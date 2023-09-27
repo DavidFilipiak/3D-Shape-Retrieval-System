@@ -9,6 +9,14 @@ feature_list = [
     "bb_dim_x",
     "bb_dim_y",
     "bb_dim_z",
+    "volume",
+    "surface_area",
+    "average_edge_length",
+    "total_edge_length",
+    "center_of_mass",
+    "connected_components_number",
+    "convex_hull"
+
 ]
 
 class Mesh():
@@ -21,6 +29,10 @@ class Mesh():
     bb_dim_x = 0
     bb_dim_y = 0
     bb_dim_z = 0
+    volume = 0
+    surface_area = 0
+    average_edge_length = 0
+    total_edge_length = 0
 
     def __init__(self, id):
         self.pymeshlab_id = id

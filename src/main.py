@@ -30,6 +30,14 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
+    out_dict_geom = ms.get_geometric_measures()
+    out_dict_top = ms.get_topological_measures()
+    ###MOST OF THE FEATURES SHOULD BE EXTRACTED AFTER THE PREPROCESSING
+    bb = current_mesh.bounding_box()
+    min_point = bb.min()
+    max_point = bb.max()
+    scale_long = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    scale_min = min(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -40,7 +48,32 @@ def add_mesh_to_system(filename=""):
         bb_dim_x=current_mesh.bounding_box().dim_x(),
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
+        volume= out_dict_geom['mesh_volume'],
+        surface_area = out_dict_geom['surface_area'],
+        average_edge_length = out_dict_geom['avg_edge_length'],
+        total_edge_length = out_dict_geom['total_edge_length'],
+        center_of_mass = out_dict_geom["center_of_mass"],
+        connected_components_number = out_dict_top["connected_components_number"],
+        convex_hull = ms.generate_convex_hull(),
+        eccentricity = math.sqrt(1- (scale_min/scale_long)**2)
     )
+    '''
+    surface area
+    compactness (with respect to a sphere)
+    3D rectangularity (shape volume divided by OBB volume)
+    diameter
+    convexity (shape volume divided by convex hull volume)
+    eccentricity (ratio of largest to smallest eigenvalues of covariance matrix)
+    Note that the definitions given in Module 4 are for 2D shapes. You need to adapt them to 3D shapes (easy).
+    
+    All above are simple global descriptors, that is, they yield a single real value. Besides these, compute also the following shape property descriptors:
+    
+    A3: angle between 3 random vertices
+    D1: distance between barycenter and random vertex
+    D2: distance between 2 random vertices
+    D3: square root of area of triangle given by 3 random vertices
+    D4: cube root of volume of tetrahedron formed by 4 random vertices
+'''
     meshes[mesh.name] = mesh
     curr_mesh = mesh
     current_mesh_label.config(text=f"Current mesh: {mesh.name}")
