@@ -48,14 +48,15 @@ def add_mesh_to_system(filename=""):
         bb_dim_x=current_mesh.bounding_box().dim_x(),
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
-        volume= out_dict_geom['mesh_volume'],
-        surface_area = out_dict_geom['surface_area'],
-        average_edge_length = out_dict_geom['avg_edge_length'],
-        total_edge_length = out_dict_geom['total_edge_length'],
-        center_of_mass = out_dict_geom["center_of_mass"],
-        connected_components_number = out_dict_top["connected_components_number"],
-        convex_hull = ms.generate_convex_hull(),
-        eccentricity = math.sqrt(1- (scale_min/scale_long)**2)
+        bb_diagonal=current_mesh.bounding_box().diagonal(),
+        volume=out_dict_geom['mesh_volume'],
+        surface_area=out_dict_geom['surface_area'],
+        average_edge_length=out_dict_geom['avg_edge_length'],
+        total_edge_length=out_dict_geom['total_edge_length'],
+        center_of_mass=out_dict_geom["center_of_mass"],
+        connected_components_number=out_dict_top["connected_components_number"],
+        convex_hull=ms.generate_convex_hull(),
+        eccentricity=math.sqrt(1 - (scale_min/scale_long)**2)
     )
     '''
     surface area

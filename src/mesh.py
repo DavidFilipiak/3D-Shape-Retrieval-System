@@ -9,15 +9,21 @@ feature_list = [
     "bb_dim_x",
     "bb_dim_y",
     "bb_dim_z",
+    "bb_diagonal",
     "volume",
     "surface_area",
     "average_edge_length",
     "total_edge_length",
     "center_of_mass",
     "connected_components_number",
-    "convex_hull"
+    "convex_hull",
+    "eccentricity"
 
 ]
+
+# have separate variables for:
+# 1. features - needed for querying
+# 2. characteristics - needed for proofs
 
 class Mesh():
     num_vertices = 0
@@ -29,10 +35,15 @@ class Mesh():
     bb_dim_x = 0
     bb_dim_y = 0
     bb_dim_z = 0
+    bb_diagonal = 0
     volume = 0
     surface_area = 0
     average_edge_length = 0
     total_edge_length = 0
+    center_of_mass = 0
+    connected_components_number = 0
+    convex_hull = 0
+    eccentricity = 0
 
     def __init__(self, id):
         self.pymeshlab_id = id
