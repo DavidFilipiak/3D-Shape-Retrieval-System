@@ -18,7 +18,6 @@ feature_list = [
     "connected_components_number",
     "convex_hull",
     "eccentricity"
-
 ]
 
 # have separate variables for:
@@ -60,3 +59,11 @@ class Mesh():
         for feature in feature_list:
             string += f"{feature}: {getattr(self, feature)}\n"
         return string
+
+
+class Feature():
+    def __init__(self, name, min, max, value):
+        self.name = name
+        self.min = min
+        self.max = max
+        self.value = value

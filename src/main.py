@@ -211,7 +211,7 @@ def batch_preprocess():
             if not os.path.exists(os.path.join(output_dir, mesh.name.split("/")[0])):
                 os.mkdir(os.path.join(output_dir, mesh.name.split("/")[0]))
             ms.save_current_mesh(os.path.join(output_dir, *(mesh.name.split("/"))))
-        
+
         clear_all_meshes_obj()
 
         if batch_size == 10:
