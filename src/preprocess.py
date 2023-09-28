@@ -64,7 +64,7 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
     target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
     previous_vertex_count = meshSet.current_mesh().vertex_number()
 
-    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
+    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH) and target_edge_length < 0.1:
         iter += 1
         print(f"iteration {iter}, target_edge_length {target_edge_length}")
         # Do just one remeshing iteration per one while iteration
@@ -196,6 +196,7 @@ def find_rotation_matrix(A, B):
     return R
 
 def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
+    """
     print("ORIGINAL MESH")
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
     print(vertex_matrix.shape, vertex_matrix)
@@ -207,30 +208,7 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
     principal_components.sort(key=lambda x: x[0], reverse=False)
-    print("principal components", principal_components)
 
-    """
-    rot_matrix_x_axis = align_vectors_rotation_matrix(principal_components[0][1], np.array([1, 0, 0]))
-    print(rot_matrix_x_axis.dot(principal_components[0][1]))
-    rot_matrix_x_axis = np.pad(rot_matrix_x_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
-    rot_matrix_x_axis[3, 3] = 1
-
-    rot_matrix_y_axis = align_vectors(principal_components[1][1], np.array([0, 1, 0]))
-    print(rot_matrix_y_axis.dot(principal_components[1][1]))
-    rot_matrix_y_axis = np.pad(rot_matrix_y_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
-    rot_matrix_y_axis[3, 3] = 1
-
-    rot_matrix_z_axis = align_vectors(principal_components[2][1], np.array([0, 0, 1]))
-    print(rot_matrix_z_axis.dot(principal_components[2][1]))
-    rot_matrix_z_axis = np.pad(rot_matrix_z_axis, ((0, 1), (0, 1)), mode='constant', constant_values=0)
-    rot_matrix_z_axis[3, 3] = 1
-
-    #rot_matrix = rot_matrix_x_axis + rot_matrix_y_axis + rot_matrix_z_axis
-
-    print(rot_matrix_x_axis)
-    #print(np.dot(rot_matrix_x_axis, principal_components[0][1]))
-    #rot_matrix_y_axis = align_vectors(principal_components[1][1], np.array([0, 1, 0]))
-    """
     print('MY APPROACH MESH')
     #meshSet.set_matrix(transformmatrix=rot_matrix_z_axis)
     #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
@@ -270,7 +248,13 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
 
     print("CONTROL MESH")
+    """
     meshSet.compute_matrix_by_principal_axis()
+
+
+
+
+    """
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
     print(vertex_matrix.shape, vertex_matrix)
     covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
@@ -280,7 +264,15 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     print(eigenvectors.shape, eigenvectors)
 
     print(updated_coords - vertex_matrix)
+    """
 
+    current_mesh = meshSet.current_mesh()
+    mesh.set_params(
+        bb_dim_x=current_mesh.bounding_box().dim_x(),
+        bb_dim_y=current_mesh.bounding_box().dim_y(),
+        bb_dim_z=current_mesh.bounding_box().dim_z(),
+        bb_diagonal=current_mesh.bounding_box().diagonal(),
+    )
 
     return mesh
 

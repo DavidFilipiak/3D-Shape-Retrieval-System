@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 import math
 import polyscope as ps
-from mesh import Mesh, meshes, feature_list
+from mesh import Mesh, meshes
+from feature import feature_list
 from database import Database
 from matplotlib import pyplot as plt
 from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip, resample_mesh_david_attempt
@@ -269,7 +270,7 @@ def draw_histogram(arr_x, arr_y):
 def do_resample():
     global ms, curr_mesh,meshes
     p = Pipeline(ms)
-    rec_path = os.path.join(os.path.dirname(current_dir),'ShapeDatabase_INFOMR-master')
+    rec_path = os.path.join(os.path.dirname(current_dir), 'db')
     p.add(resample_mesh, result_filename= rec_path)
     remeshed_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in remeshed_meshes}
