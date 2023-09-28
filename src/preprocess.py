@@ -21,8 +21,15 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
-    while (meshSet.current_mesh().vertex_number() <= 10*TARGET):
+    while (meshSet.current_mesh().vertex_number() <= TARGET):
+        iter += 1
+        # try:
+        #     meshSet.meshing_surface_subdivision_butterfly(iterations=iter)
+        # except:
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
+        # meshSet.repair_non_manifold_edges()
+
+        print(f"vertice number {meshSet.current_mesh().vertex_number()}")
         current_vertex_count = meshSet.current_mesh().vertex_number()
         print(f"Vertex number: {current_vertex_count}")
         # Check if the current vertex count is the same as the previous vertex count
@@ -39,7 +46,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         previous_vertex_count = current_vertex_count
         # Simplify the mesh. Only first simplification will be agressive
     while (meshSet.current_mesh().vertex_number() > TARGET):
-        meshSet.meshing_repair_non_manifold_edges()
+        # meshSet.meshing_repair_non_manifold_edges()
         print(meshSet.current_mesh().label())
         meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces,
                              preservenormal=True)
@@ -64,7 +71,7 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
     target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
     previous_vertex_count = meshSet.current_mesh().vertex_number()
 
-    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH) and target_edge_length < 0.1:
+    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
         iter += 1
         print(f"iteration {iter}, target_edge_length {target_edge_length}")
         # Do just one remeshing iteration per one while iteration
@@ -100,11 +107,78 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
         previous_vertex_count = current_vertex_count
 
     current_mesh = meshSet.current_mesh()
+    edge_matrix = current_mesh.edge_matrix()
+    vertex_matrix = current_mesh.vertex_matrix()
+    dist_array = np.ndarray(len(edge_matrix))
+    for i,edge in enumerate(edge_matrix):
+        v1 =  vertex_matrix[edge[0]]
+        v2 = vertex_matrix[edge[1]]
+        eucl_dist = np.linalg.norm(v1-v2)
+        dist_array[i] = eucl_dist
+    out_dict = meshSet.get_geometric_measures()
+    avg_length = out_dict["avg_edge_length"]
+    avg_length_array = dist_array - avg_length
     mesh.set_params(
-        num_faces =current_mesh.vertex_number(),
+        num_faces=current_mesh.vertex_number(),
         num_vertices=current_mesh.face_number()
     )
+    # meshSet.clear()
+    # meshSet.load_new_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
+    #validation_quality_check(meshSet)
     return mesh
+# def validation_quality_check( meshSet: pymeshlab.MeshSet) -> Mesh:
+#     out_dict_geom  = meshSet.get_geometric_measures()
+#     out_dict_top = meshSet.get_topological_measures()
+
+# def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
+#     TARGET_LOW = 8000
+#     TARGET_HIGH = 13000
+#     iter = 0
+#
+#     target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
+#     previous_vertex_count = meshSet.current_mesh().vertex_number()
+#
+#     while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
+#         iter += 1
+#         print(f"iteration {iter}, target_edge_length {target_edge_length}")
+#         # Do just one remeshing iteration per one while iteration
+#         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1)
+#         # meshSet.repair_non_manifold_edges()
+#         print(f"Vertex number: {previous_vertex_count}")
+#         current_vertex_count = meshSet.current_mesh().vertex_number()
+#         print(f"Vertex number: {current_vertex_count}")
+#         # Check if the current vertex count is the same as the previous vertex count
+#         var = max(0.0, math.log10(current_vertex_count) - 2)
+#         if current_vertex_count < TARGET_LOW or current_vertex_count > TARGET_HIGH:
+#             gap = 1000
+#         else:
+#             gap = 100
+#         #print(gap)
+#         rate_of_change = 1/10
+#         diff_low, diff_high = current_vertex_count - TARGET_LOW, TARGET_HIGH - current_vertex_count
+#
+#
+#         if current_vertex_count - gap <= previous_vertex_count <= current_vertex_count + gap:
+#             if current_vertex_count < TARGET_LOW:
+#                 print("IF 1")
+#                 target_edge_length *= (1 - rate_of_change)
+#             elif current_vertex_count > TARGET_HIGH:
+#                 print("IF 2")
+#                 target_edge_length *= (1 + rate_of_change)
+#             else:
+#                 print("IF 3")
+#         else:
+#             print("IF 4")
+#
+#         # Update the previous vertex count
+#         previous_vertex_count = current_vertex_count
+#
+#     current_mesh = meshSet.current_mesh()
+#     mesh.set_params(
+#         num_faces =current_mesh.vertex_number(),
+#         num_vertices=current_mesh.face_number()
+#     )
+#     return mesh
 
 
 def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:

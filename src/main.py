@@ -10,7 +10,7 @@ from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip, resample_mesh_david_attempt
+from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -31,14 +31,14 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
-    out_dict_geom = ms.get_geometric_measures()
-    out_dict_top = ms.get_topological_measures()
+    # out_dict_geom = ms.get_geometric_measures()
+    # out_dict_top = ms.get_topological_measures()
     ###MOST OF THE FEATURES SHOULD BE EXTRACTED AFTER THE PREPROCESSING
     bb = current_mesh.bounding_box()
     min_point = bb.min()
     max_point = bb.max()
-    scale_long = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
-    scale_min = min(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    # scale_long = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    # scale_min = min(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -201,7 +201,7 @@ def batch_preprocess():
     pipeline.add(align)
     pipeline.add(flip)
     pipeline.add(scale_to_unit_cube)
-    pipeline.add(resample_mesh_david_attempt)
+   # pipeline.add(resample_mesh_david_attempt)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
     while file_count == batch_size:
@@ -299,7 +299,7 @@ def do_nothing():
     pass
 
 def main() -> None:
-    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename,data
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data
     filename = ''
     ms = pymeshlab.MeshSet()
     database = Database()
