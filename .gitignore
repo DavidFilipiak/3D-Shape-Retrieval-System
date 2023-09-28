@@ -162,4 +162,5 @@ cython_debug/
 
 # OURS
 db/
+preprocessed/
 src/imgui.ini

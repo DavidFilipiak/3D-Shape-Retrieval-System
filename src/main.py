@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes, feature_list
 from database import Database
 from matplotlib import pyplot as plt
-from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
+from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip, resample_mesh_david_attempt
 from utils import count_triangles_and_quads
 from pipeline import Pipeline
 
@@ -49,14 +49,14 @@ def add_mesh_to_system(filename=""):
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
-        volume=out_dict_geom['mesh_volume'],
-        surface_area=out_dict_geom['surface_area'],
-        average_edge_length=out_dict_geom['avg_edge_length'],
-        total_edge_length=out_dict_geom['total_edge_length'],
-        center_of_mass=out_dict_geom["center_of_mass"],
-        connected_components_number=out_dict_top["connected_components_number"],
-        convex_hull=ms.generate_convex_hull(),
-        eccentricity=math.sqrt(1 - (scale_min/scale_long)**2)
+        #volume=out_dict_geom['mesh_volume'],
+        #surface_area=out_dict_geom['surface_area'],
+        #average_edge_length=out_dict_geom['avg_edge_length'],
+        #total_edge_length=out_dict_geom['total_edge_length'],
+        #center_of_mass=out_dict_geom["center_of_mass"],
+        #connected_components_number=out_dict_top["connected_components_number"],
+        #convex_hull=ms.generate_convex_hull(),
+        #eccentricity=math.sqrt(1 - (scale_min/scale_long)**2)
     )
     '''
     surface area
@@ -90,24 +90,27 @@ def browse_button() -> None:
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
-def load_files_recursively(topdir, extension, limit=-1, count=0) -> int:
+def load_files_recursively(topdir, extension, limit=-1, offset=0, count=0) -> int:
     if limit == 0:
         return count
     elif 0 < limit <= count:
         return count
 
-    for root, dirs, files in os.walk(topdir):
-        for file in files:
-            if file.endswith(extension):
-                if 0 < limit <= count:
-                    return count
-                new_path = os.path.join(root, file).replace("\\", "/")
-                ms.load_new_mesh(new_path)
-                add_mesh_to_system(new_path)
+    root, dirs, files = list(os.walk(topdir))[0]
+    for file in files:
+        if file.endswith(extension):
+            if 0 < limit <= count:
+                return count
+            if count < offset:
                 count += 1
+                continue
+            new_path = os.path.join(root, file).replace("\\", "/")
+            ms.load_new_mesh(new_path)
+            add_mesh_to_system(new_path)
+            count += 1
 
-        for _dir in dirs:
-            count = load_files_recursively(os.path.join(root, _dir), extension, limit, count)
+    for _dir in dirs:
+        count = load_files_recursively(os.path.join(root, _dir), extension, limit, offset, count)
     return count
 
 
@@ -184,6 +187,37 @@ def do_scale():
     normalized_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
     print("Scaled to unit cube")
+
+
+def batch_preprocess():
+    global meshes
+    output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
+    folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+    batch_size = 10
+    batch_offset = 0
+    pipeline = Pipeline(ms)
+    pipeline.add(translate_to_origin)
+    pipeline.add(align)
+    pipeline.add(flip)
+    pipeline.add(scale_to_unit_cube)
+    pipeline.add(resample_mesh_david_attempt)
+
+    file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+    while file_count == batch_size:
+        batch_offset += batch_size
+        pipeline.run(list(meshes.values()))
+        for mesh in meshes.values():
+            ms.set_current_mesh(mesh.pymeshlab_id)
+            if not os.path.exists(os.path.join(output_dir, mesh.name.split("/")[0])):
+                os.mkdir(os.path.join(output_dir, mesh.name.split("/")[0]))
+            ms.save_current_mesh(os.path.join(output_dir, *(mesh.name.split("/"))))
+        
+        clear_all_meshes_obj()
+
+        if batch_size == 10:
+            break
+        file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+
 
 
 def analyze_feature(feature):
@@ -304,6 +338,7 @@ def main() -> None:
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)
+    preprocessmenu.add_command(label="Batch", command=batch_preprocess)
     preprocessmenu.add_command(label="Full", command=do_nothing)
     preprocessmenu.add_separator()
     preprocessmenu.add_command(label="Resample", command=do_resample)
