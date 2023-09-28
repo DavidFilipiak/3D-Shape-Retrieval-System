@@ -24,3 +24,19 @@ def sign(n):
     if n > 0:
         return 1
     return 0
+def calculate_volume(vertex_matrix, face_matrix):
+    overall_volume = 0
+    for face_indices in face_matrix:
+
+        v0, v1, v2 = vertex_matrix[face_indices]
+        volume = abs(dot(v0, np.cross(v1, v2))) / 6
+        overall_volume += volume
+    return overall_volume
+
+
+def calculate_face_area(face_matrix, vertex_matrix):
+    list = []
+    for face_indices in face_matrix:
+        v0, v1, v2 = vertex_matrix[face_indices]
+        list.append(abs(dot(v0, np.cross(v1, v2))) / 2)
+    return list

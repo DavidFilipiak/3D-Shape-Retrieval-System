@@ -17,6 +17,8 @@ feature_list = [
     "connected_components_number",
     "convex_hull",
     "eccentricity"
+    "compactness",
+    "rectangularity"
 ]
 
 class Feature():
@@ -152,5 +154,21 @@ class Eccentricity(Feature):
 class Rectangularity(Feature):
     def __init__(self, value):
         super().__init__("rectangularity", 0, 1, value)
+
+class Compactness(Feature):
+    def __init__(self, value):
+        super().__init__("compactness", 0, 1, value)
+
+class Convexivity(Feature):
+    def __init__(self, value):
+        super().__init__("convexivity", 0, 1, value)
+#Axis aligned bounding box
+class AABB_volume(Feature):
+    def __init__(self, value):
+        super().__init__("obb_volume", 0, 100000, value)
+class Diameter(Feature):
+    def __init__(self, value):
+        super().__init__("diameter", 0, 100000, value)
+
 
 

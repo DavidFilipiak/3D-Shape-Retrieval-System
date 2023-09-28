@@ -1,12 +1,12 @@
 import math
 import os
 import numpy as np
-
 import pymeshlab
+from matplotlib import pyplot as plt
 from pymeshlab import AbsoluteValue
-from scipy.spatial.transform import Rotation as R
-from utils import get_barycenter, dot, sign
-from mesh import Mesh, meshes
+
+from utils import get_barycenter, sign, calculate_face_area
+from mesh import Mesh
 '''
 REMESH -  if vertices > TARGET reduce them
           if vertices <= TARGET reduce them
@@ -23,12 +23,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     max_consecutive_constant_iterations = 1
     while (meshSet.current_mesh().vertex_number() <= TARGET):
         iter += 1
-        # try:
-        #     meshSet.meshing_surface_subdivision_butterfly(iterations=iter)
-        # except:
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
-        # meshSet.repair_non_manifold_edges()
-
         print(f"vertice number {meshSet.current_mesh().vertex_number()}")
         current_vertex_count = meshSet.current_mesh().vertex_number()
         print(f"Vertex number: {current_vertex_count}")
@@ -53,15 +48,35 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         print("Decimated to", numFaces, "faces mesh has", meshSet.current_mesh().vertex_number(), "vertex")
         # Refine our estimation to slowly converge to TARGET vertex number
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
-    meshSet.save_current_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
+    #meshSet.save_current_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
         num_faces =current_mesh.vertex_number(),
         num_vertices=current_mesh.face_number()
     )
+    #FACE AREA HISTOGRAM
+    face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
+    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
+    histogram = draw_histogram(hist_x[:-1], hist_y)
     return mesh
 
 
+'''
+TO DELETE AFTERWARDS
+'''
+def draw_histogram(arr_x, arr_y):
+    plt.rcParams["figure.figsize"] = [13, 6]
+    plt.rcParams["figure.autolayout"] = True
+    width = np.mean(arr_x[1:] - arr_x[:-1]) / 2
+    fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
+    plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
+    for i in range(1, len(arr_x), 2):
+        if arr_y[i] > 0:
+            plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
+    plt.xlabel("Bin size")
+    plt.ylabel("Number of meshes")
+    plt.show()
+    return fig
 
 def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
     TARGET_LOW = 8000
@@ -107,78 +122,11 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
         previous_vertex_count = current_vertex_count
 
     current_mesh = meshSet.current_mesh()
-    edge_matrix = current_mesh.edge_matrix()
-    vertex_matrix = current_mesh.vertex_matrix()
-    dist_array = np.ndarray(len(edge_matrix))
-    for i,edge in enumerate(edge_matrix):
-        v1 =  vertex_matrix[edge[0]]
-        v2 = vertex_matrix[edge[1]]
-        eucl_dist = np.linalg.norm(v1-v2)
-        dist_array[i] = eucl_dist
-    out_dict = meshSet.get_geometric_measures()
-    avg_length = out_dict["avg_edge_length"]
-    avg_length_array = dist_array - avg_length
     mesh.set_params(
         num_faces=current_mesh.vertex_number(),
         num_vertices=current_mesh.face_number()
     )
-    # meshSet.clear()
-    # meshSet.load_new_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
-    #validation_quality_check(meshSet)
     return mesh
-# def validation_quality_check( meshSet: pymeshlab.MeshSet) -> Mesh:
-#     out_dict_geom  = meshSet.get_geometric_measures()
-#     out_dict_top = meshSet.get_topological_measures()
-
-# def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
-#     TARGET_LOW = 8000
-#     TARGET_HIGH = 13000
-#     iter = 0
-#
-#     target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
-#     previous_vertex_count = meshSet.current_mesh().vertex_number()
-#
-#     while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
-#         iter += 1
-#         print(f"iteration {iter}, target_edge_length {target_edge_length}")
-#         # Do just one remeshing iteration per one while iteration
-#         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1)
-#         # meshSet.repair_non_manifold_edges()
-#         print(f"Vertex number: {previous_vertex_count}")
-#         current_vertex_count = meshSet.current_mesh().vertex_number()
-#         print(f"Vertex number: {current_vertex_count}")
-#         # Check if the current vertex count is the same as the previous vertex count
-#         var = max(0.0, math.log10(current_vertex_count) - 2)
-#         if current_vertex_count < TARGET_LOW or current_vertex_count > TARGET_HIGH:
-#             gap = 1000
-#         else:
-#             gap = 100
-#         #print(gap)
-#         rate_of_change = 1/10
-#         diff_low, diff_high = current_vertex_count - TARGET_LOW, TARGET_HIGH - current_vertex_count
-#
-#
-#         if current_vertex_count - gap <= previous_vertex_count <= current_vertex_count + gap:
-#             if current_vertex_count < TARGET_LOW:
-#                 print("IF 1")
-#                 target_edge_length *= (1 - rate_of_change)
-#             elif current_vertex_count > TARGET_HIGH:
-#                 print("IF 2")
-#                 target_edge_length *= (1 + rate_of_change)
-#             else:
-#                 print("IF 3")
-#         else:
-#             print("IF 4")
-#
-#         # Update the previous vertex count
-#         previous_vertex_count = current_vertex_count
-#
-#     current_mesh = meshSet.current_mesh()
-#     mesh.set_params(
-#         num_faces =current_mesh.vertex_number(),
-#         num_vertices=current_mesh.face_number()
-#     )
-#     return mesh
 
 
 def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
