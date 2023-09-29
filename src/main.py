@@ -11,7 +11,7 @@ from feature import feature_list
 from database import Database
 from matplotlib import pyplot as plt
 from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
-from utils import count_triangles_and_quads, calculate_volume, calculate_face_area
+from utils import *
 from pipeline import Pipeline
 from feature import *
 # GLOBAL VARIABLES
@@ -46,6 +46,7 @@ def add_mesh_to_system(filename=""):
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
+        barycenter=get_barycenter(current_mesh.vertex_matrix())
         #volume=out_dict_geom['mesh_volume'],
         #surface_area=out_dict_geom['surface_area'],
         #average_edge_length=out_dict_geom['avg_edge_length'],

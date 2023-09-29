@@ -1,6 +1,16 @@
 import pandas as pd
-import csv_files
+import numpy as np
 import os
+import ast
+from feature import vector_feature_list
+
+
+def string_to_np_array(string):
+    split = string.split(" ")
+    split[0] = split[0][1:]
+    split[-1] = split[-1][:-1]
+    return np.array([float(x) for x in split if x != ""])
+
 
 class Database:
     def __init__(self):
@@ -14,6 +24,9 @@ class Database:
 
     def load_table(self, path: str) -> None:
         new_table = self.new_table(path=path)
+        for f in vector_feature_list:
+            if f in new_table.columns:
+                new_table[f] = new_table[f].apply(string_to_np_array)
         self.add_table(new_table, name=os.path.basename(path))
 
     def add_table(self, table: pd.DataFrame, name="") -> None:
@@ -38,5 +51,6 @@ class Database:
 
     def save_table(self, path: str) -> None:
         self.table.to_csv(path, index=False)
+
     def clear_table(self) ->None:
         self.table = None
