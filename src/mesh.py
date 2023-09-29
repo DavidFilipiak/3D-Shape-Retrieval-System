@@ -18,6 +18,7 @@ class Mesh():
     bb_dim_z = Bb_dim_z(0)
     bb_diagonal = Bb_diagonal(0)
     barycenter = Barycenter(np.zeros(3))
+    major_eigenvector = MajorEigenvector(np.zeros(3))
     volume = Volume(0)
     surface_area = Surface_area(0)
     connected_components_number = Connected_components_number(0)

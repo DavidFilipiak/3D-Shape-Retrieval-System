@@ -5,7 +5,7 @@ import pymeshlab
 from matplotlib import pyplot as plt
 from pymeshlab import AbsoluteValue
 
-from utils import get_barycenter, sign, calculate_face_area
+from utils import *
 from mesh import Mesh
 '''
 REMESH -  if vertices > TARGET reduce them
@@ -273,9 +273,6 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     """
     meshSet.compute_matrix_by_principal_axis()
 
-
-
-
     """
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
     print(vertex_matrix.shape, vertex_matrix)
@@ -289,11 +286,13 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     """
 
     current_mesh = meshSet.current_mesh()
+    principal_components = get_principal_components(current_mesh.vertex_matrix())
     mesh.set_params(
         bb_dim_x=current_mesh.bounding_box().dim_x(),
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
+        major_eigenvector=principal_components[0][1],
     )
 
     return mesh

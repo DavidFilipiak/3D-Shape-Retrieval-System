@@ -14,13 +14,13 @@ from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, a
 from utils import *
 from pipeline import Pipeline
 from feature import *
+from analyze import *
+
 # GLOBAL VARIABLES
 ms = None
 database = None
 listbox_loaded_meshes, label_loaded_meshes, current_mesh_label, current_csv_label = None, None, None, None
 current_dir = os.getcwd()
-selected_x = [0, 1000]  # example data for now, to store the list of values for x-axis
-selected_y = [0, 2000]  # to store the list of values for y-axis
 curr_mesh = None
 
 
@@ -46,7 +46,8 @@ def add_mesh_to_system(filename=""):
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
-        barycenter=get_barycenter(current_mesh.vertex_matrix())
+        barycenter=get_barycenter(current_mesh.vertex_matrix()),
+        major_eigenvector=get_principal_components(current_mesh.vertex_matrix())[0][1],
         #volume=out_dict_geom['mesh_volume'],
         #surface_area=out_dict_geom['surface_area'],
         #average_edge_length=out_dict_geom['avg_edge_length'],
@@ -174,14 +175,15 @@ def batch_preprocess():
     global meshes
     output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    batch_size = 1
+    batch_size = 20
     batch_offset = 0
     pipeline = Pipeline(ms)
     pipeline.add(resample_mesh)
     pipeline.add(translate_to_origin)
+    pipeline.add(scale_to_unit_cube)
     pipeline.add(align)
     pipeline.add(flip)
-    pipeline.add(scale_to_unit_cube)
+
    # pipeline.add(resample_mesh_david_attempt)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
@@ -217,7 +219,7 @@ def batch_preprocess():
 
         clear_all_meshes_obj()
 
-        if batch_size == 10:
+        if batch_size == -1:
             break
         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
 
@@ -225,46 +227,65 @@ def batch_preprocess():
 
 def analyze_feature(feature):
     table = database.get_table()
-    table.sort_values(feature, inplace=True)
-    values = table[feature].values
-    max_value = table[feature].max()
-    row_with_max_value = table[table[feature] == max_value]
-    min_value = table[feature].min()
-    row_with_min_value = table[table[feature] == min_value]
-    average_value = table[feature].mean()
-    table['temp_abs_diff'] = abs(table[feature] - average_value)
-    closest_avg_row = table[table['temp_abs_diff'] == table['temp_abs_diff'].min()]
-    closest_avg_row = closest_avg_row.drop('temp_abs_diff', axis=1)[["name", feature]]
-    table.drop('temp_abs_diff', axis=1, inplace=True)
+
+    analysis = None
+    xlabel = "Bin size"
+    ylabel = "Number of meshes"
+    mean, std = None, None
+    if feature == "barycenter":
+        analysis = analyze_bary_distance_to_origin_all(table, "barycenter")
+        xlabel = "Distance to origin"
+        ylabel = "Frequency"
+        mean, std = analysis.mean_view, analysis.std_view
+    elif feature == "major_eigenvector":
+        analysis = analyze_major_eigenvector_dot_with_x_axis(table, "major_eigenvector")
+        xlabel = "Dot product with x-axis"
+        ylabel = "Frequency"
+    else:
+        feature_obj = show_feature_dict[feature]
+        analysis = analyze_feature_all(table[["name", feature]], feature_obj.min, feature_obj.max)
+
 
     print("Analysis of Feature:", feature)
-    print("Max value:", max_value)
-    print("Max value mesh:", row_with_max_value["name"].values[0], "with value:", row_with_max_value[feature].values[0])
-    print("Min value:", min_value)
-    print("Min value mesh:", row_with_min_value["name"].values[0], "with value:", row_with_min_value[feature].values[0])
-    print("Average value:", average_value)
-    print("Closest mesh:", closest_avg_row["name"].values[0], "with value:", closest_avg_row[feature].values[0])
+    print("Max value:", analysis.max_value)
+    print("Max value mesh:", analysis.max_mesh, "with value:", analysis.max_value)
+    print("Min value:", analysis.min_value)
+    print("Min value mesh:", analysis.min_mesh, "with value:", analysis.min_value)
+    print("Average value:", analysis.mean_all)
+    print("Closest mesh:", analysis.avg_mesh, "with value:", analysis.avg_mesh_value)
+    print("Standard deviation:", analysis.std_all)
+    print("Average view value:", analysis.mean_view)
+    print("Average view mesh:", analysis.mean_view_mesh, "with value:", analysis.mean_view_mesh_value)
+    print("Standard deviation view value:", analysis.std_view)
+    print("Outliers:", analysis.outliers)
 
-    hist_y, hist_x = np.histogram(values, bins=math.ceil(math.sqrt(len(values))))
-    if max_value - min_value > 10:
-        hist_x = hist_x.astype(int)
-    else:
+    hist_y, hist_x = analysis.histogram
+    #if max_value - min_value > 10:
+    #    hist_x = hist_x.astype(int)
+    #else:
         # round to 2 decimal places
-        hist_x = np.round(hist_x, 2)
-    histogram = draw_histogram(hist_x[:-1], hist_y)
+    #    hist_x = np.round(hist_x, 2)
+    histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_view, analysis.max_view, mean=mean, std=std, xlabel=xlabel, ylabel=ylabel)
 
 
-def draw_histogram(arr_x, arr_y):
+def draw_histogram(arr_x, arr_y, min, max, mean=None, std=None, xlabel="Bin size", ylabel="Number of meshes"):
     plt.rcParams["figure.figsize"] = [13, 6]
     plt.rcParams["figure.autolayout"] = True
-    width = np.mean(arr_x[1:] - arr_x[:-1]) / 2
+    plt.xlim(min, max)
+    width = (max - min) / len(arr_x)
+    print(width, max, min, len(arr_x))
     fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
-    plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
-    for i in range(1, len(arr_x), 2):
-        if arr_y[i] > 0:
-            plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
-    plt.xlabel("Bin size")
-    plt.ylabel("Number of meshes")
+    if mean is not None:
+        plt.axvline(mean, color='black', linestyle='dashed', linewidth=1)
+    if std is not None:
+        plt.axvline(mean - std, color='grey', linestyle='dashed', linewidth=0.7)
+        plt.axvline(mean + std, color='grey', linestyle='dashed', linewidth=0.7)
+    #plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
+    #for i in range(1, len(arr_x), 2):
+    #    if arr_y[i] > 0:
+    #        plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.show()
     return fig
 
@@ -334,9 +355,8 @@ def main() -> None:
     analyzemenu.add_command(label="Current Mesh", command=do_nothing)
     analyzemenu.add_separator()
     featuresmenu = Menu(analyzemenu, tearoff=0)
-    for feature in feature_list:
-        if feature not in ['name', 'class_name']:
-            featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
+    for feature in show_feature_dict.keys():
+        featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
     analyzemenu.add_cascade(label="All Loaded Meshes (.csv)", menu=featuresmenu)
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu

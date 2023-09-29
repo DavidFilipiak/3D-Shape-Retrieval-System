@@ -18,6 +18,14 @@ def get_barycenter(vertex_matrix):
     return np.round(np.mean(vertex_matrix, axis=0), 3)
 
 
+def get_principal_components(vertex_matrix):
+    covariance_matrix = np.cov(np.transpose(vertex_matrix))
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+    principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
+    principal_components.sort(key=lambda x: x[0], reverse=False)
+    return principal_components
+
+
 def dot(a, b):
     return sum([a[i] * b[i] for i in range(len(a))])
 
