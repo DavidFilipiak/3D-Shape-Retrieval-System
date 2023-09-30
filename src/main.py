@@ -178,9 +178,9 @@ def batch_preprocess():
     batch_size = 20
     batch_offset = 0
     pipeline = Pipeline(ms)
-    pipeline.add(resample_mesh)
     pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
+    pipeline.add(resample_mesh)
     pipeline.add(align)
     pipeline.add(flip)
 
@@ -236,7 +236,7 @@ def analyze_feature(feature):
         analysis = analyze_bary_distance_to_origin_all(table, "barycenter")
         xlabel = "Distance to origin"
         ylabel = "Frequency"
-        mean, std = analysis.mean_view, analysis.std_view
+        #mean, std = analysis.mean_view, analysis.std_view
     elif feature == "major_eigenvector":
         analysis = analyze_major_eigenvector_dot_with_x_axis(table, "major_eigenvector")
         xlabel = "Dot product with x-axis"
