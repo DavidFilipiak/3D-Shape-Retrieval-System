@@ -13,6 +13,10 @@ REMESH -  if vertices > TARGET reduce them
 '''
 
 def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
+    face_areas = calculate_face_area(meshSet.current_mesh().face_matrix(), meshSet.current_mesh().vertex_matrix())
+    filtered_list = [x for x in face_areas if x != 0]
+    hist_y, hist_x = np.histogram(filtered_list, bins=np.unique(face_areas))
+    draw_histogram_resample(hist_x[:-1])
     TARGET = 10000
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
@@ -56,27 +60,53 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     )
     #FACE AREA HISTOGRAM
     face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
-    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    histogram = draw_histogram(hist_x[:-1], hist_y)
+    filtered_list = [x for x in face_areas if x != 0]
+    hist_y, hist_x = np.histogram(filtered_list, bins= np.unique(filtered_list))
+    draw_histogram_resample(hist_x[:-1])
     return mesh
 
 
 '''
 TO DELETE AFTERWARDS
 '''
-def draw_histogram(arr_x, arr_y):
-    plt.rcParams["figure.figsize"] = [13, 6]
-    plt.rcParams["figure.autolayout"] = True
-    width = np.mean(arr_x[1:] - arr_x[:-1]) / 2
-    fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
-    plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
-    for i in range(1, len(arr_x), 2):
-        if arr_y[i] > 0:
-            plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
-    plt.xlabel("Bin size")
-    plt.ylabel("Number of meshes")
+def draw_histogram_resample(x):
+    # Create a fullscreen figure
+    fig = plt.figure(figsize=(20, 10))
+
+    # Calculate the number of bins using the Freedman-Diaconis rule
+    q25, q75 = np.percentile(x, [25, 75])
+    bin_width = 2 * (q75 - q25) * len(x) ** (-1 / 3)
+    num_bins = round((x.max() - x.min()) / bin_width)
+
+    # Create the histogram
+    hist, bins, _ = plt.hist(x, bins=num_bins, edgecolor='black')
+
+    # Find the mode (most frequent value) and its bin
+    mode_bin = bins[np.argmax(hist)]
+
+    # Calculate the range for the x-axis to center the mode
+    x_min = mode_bin - (bin_width * num_bins) / 2
+    x_max = mode_bin + (bin_width * num_bins) / 2
+
+    # Calculate the shift amount to center the distribution around the mode
+    shift_amount = mode_bin - np.mean(x)
+
+    # Apply the shift to the data
+    shifted_x = x + shift_amount
+
+    # Create a new histogram using the shifted data
+    hist, bins, _ = plt.hist(shifted_x, bins=num_bins, edgecolor='black')
+
+    # Set the x-axis range for the centered histogram
+    plt.xlim(x_min, x_max)
+
+    # Set the plot title and labels
+    plt.title('Distribution of face areas (Centered around Mode)')
+    plt.xlabel('Value')
+    plt.ylabel('Number of face areas')
+
+    # Show the plot
     plt.show()
-    return fig
 
 def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
     TARGET_LOW = 8000
