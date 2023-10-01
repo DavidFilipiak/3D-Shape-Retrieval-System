@@ -1,5 +1,5 @@
 import numpy as np
-
+from matplotlib import pyplot as plt
 
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
@@ -52,5 +52,32 @@ def calculate_face_area(face_matrix, vertex_matrix):
     list = []
     for face_indices in face_matrix:
         v0, v1, v2 = vertex_matrix[face_indices]
-        list.append(abs(dot(v0, np.cross(v1, v2))) / 2)
+        list.append(abs(np.linalg.norm(np.cross(v1 - v0, v2 - v0)) / 2))
     return list
+
+
+def draw_histogram(arr_x, arr_y, min, max, mean=None, std=None, xlabel="Bin size", ylabel="Number of meshes"):
+    plt.rcParams["figure.figsize"] = [13, 6]
+    plt.rcParams["figure.autolayout"] = True
+    plt.xlim(min, max)
+
+    if np.min(arr_x) > min:
+        min = np.min(arr_x)
+    if np.max(arr_x) < max:
+        max = np.max(arr_x)
+    width = (max - min) / (len(arr_x) + 5)
+    print(width, max, min, len(arr_x))
+    fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
+    if mean is not None:
+        plt.axvline(mean, color='black', linestyle='dashed', linewidth=1)
+    if std is not None:
+        plt.axvline(mean - std, color='grey', linestyle='dashed', linewidth=0.7)
+        plt.axvline(mean + std, color='grey', linestyle='dashed', linewidth=0.7)
+    #plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
+    #for i in range(1, len(arr_x), 2):
+    #    if arr_y[i] > 0:
+    #        plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+    return fig

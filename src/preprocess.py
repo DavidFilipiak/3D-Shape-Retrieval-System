@@ -14,9 +14,9 @@ REMESH -  if vertices > TARGET reduce them
 
 def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
     face_areas = calculate_face_area(meshSet.current_mesh().face_matrix(), meshSet.current_mesh().vertex_matrix())
-    filtered_list = [x for x in face_areas if x != 0]
-    hist_y, hist_x = np.histogram(filtered_list, bins=np.unique(face_areas))
-    draw_histogram_resample(hist_x[:-1])
+    # filtered_list = [x for x in face_areas if x != 0]
+    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
+    draw_histogram(hist_x[:-1], hist_y, 0, 0.1, xlabel='Face area', ylabel='Number of faces')
     TARGET = 10000
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
@@ -60,9 +60,9 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     )
     #FACE AREA HISTOGRAM
     face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
-    filtered_list = [x for x in face_areas if x != 0]
-    hist_y, hist_x = np.histogram(filtered_list, bins= np.unique(filtered_list))
-    draw_histogram_resample(hist_x[:-1])
+    #filtered_list = [x for x in face_areas if x != 0]
+    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
+    draw_histogram(hist_x[:-1], hist_y, 0, 0.002, xlabel='Face area', ylabel='Number of faces')
     return mesh
 
 

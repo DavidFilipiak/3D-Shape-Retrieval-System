@@ -9,7 +9,6 @@ import polyscope as ps
 from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
-from matplotlib import pyplot as plt
 from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
 from utils import *
 from pipeline import Pipeline
@@ -267,27 +266,6 @@ def analyze_feature(feature):
     #    hist_x = np.round(hist_x, 2)
     histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_view, analysis.max_view, mean=mean, std=std, xlabel=xlabel, ylabel=ylabel)
 
-
-def draw_histogram(arr_x, arr_y, min, max, mean=None, std=None, xlabel="Bin size", ylabel="Number of meshes"):
-    plt.rcParams["figure.figsize"] = [13, 6]
-    plt.rcParams["figure.autolayout"] = True
-    plt.xlim(min, max)
-    width = (max - min) / len(arr_x)
-    print(width, max, min, len(arr_x))
-    fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')
-    if mean is not None:
-        plt.axvline(mean, color='black', linestyle='dashed', linewidth=1)
-    if std is not None:
-        plt.axvline(mean - std, color='grey', linestyle='dashed', linewidth=0.7)
-        plt.axvline(mean + std, color='grey', linestyle='dashed', linewidth=0.7)
-    #plt.xticks([arr_x[i] for i in range(0, len(arr_x), 2) if arr_y[i] > 0])
-    #for i in range(1, len(arr_x), 2):
-    #    if arr_y[i] > 0:
-    #        plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.show()
-    return fig
 
 
 def do_resample():
