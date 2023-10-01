@@ -9,7 +9,7 @@ import polyscope as ps
 from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
-from preprocess import translate_to_origin, scale_to_unit_cube, resample_mesh, align, flip
+from preprocess import *
 from utils import *
 from pipeline import Pipeline
 from feature import *

@@ -156,7 +156,7 @@ class Bb_dim_z(ScalarFeature):
 
 class Bb_diagonal(ScalarFeature):
     def __init__(self, value):
-        super().__init__("bb_diagonal", 0, 1000, value)
+        super().__init__("bb_diagonal", 0, 200, value)
 
 
 class Barycenter(VectorFeature):
