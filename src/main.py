@@ -10,6 +10,7 @@ from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
 from preprocess import *
+from src.feature_extraction_elem import get_elementary_features
 from utils import *
 from pipeline import Pipeline
 from feature import *
@@ -30,10 +31,6 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
-    ###MOST OF THE FEATURES SHOULD BE EXTRACTED AFTER THE PREPROCESSING
-    bb = current_mesh.bounding_box()
-    min_point = bb.min()
-    max_point = bb.max()
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -48,14 +45,7 @@ def add_mesh_to_system(filename=""):
         barycenter=get_barycenter(current_mesh.vertex_matrix()),
         major_eigenvector=get_principal_components(current_mesh.vertex_matrix())[0][1],
         mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
-        #volume=out_dict_geom['mesh_volume'],
-        #surface_area=out_dict_geom['surface_area'],
-        #average_edge_length=out_dict_geom['avg_edge_length'],
-        #total_edge_length=out_dict_geom['total_edge_length'],
-        #center_of_mass=out_dict_geom["center_of_mass"],
-        #connected_components_number=out_dict_top["connected_components_number"],
-        #convex_hull=ms.generate_convex_hull(),
-        #eccentricity=math.sqrt(1 - (scale_min/scale_long)**2)
+
     )
     meshes[mesh.name] = mesh
     curr_mesh = mesh
@@ -170,12 +160,20 @@ def do_scale():
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
     print("Scaled to unit cube")
 
+def get_elem_features():
+    global meshes
+    p = Pipeline(ms)
+    p.add(get_elementary_features)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Extracted elementary features")
+
 
 def batch_preprocess():
     global meshes
     output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    batch_size = 20
+    batch_size = 1
     batch_offset = 0
     pipeline = Pipeline(ms)
     pipeline.add(translate_to_origin)
@@ -194,27 +192,6 @@ def batch_preprocess():
             ms.set_current_mesh(mesh.pymeshlab_id)
             if not os.path.exists(os.path.join(output_dir, mesh.name.split("/")[0])):
                 os.mkdir(os.path.join(output_dir, mesh.name.split("/")[0]))
-            # calculate surface area
-            Surface_area.value = ms.get_geometric_measures()['surface_area']
-            # calculate volume
-            Volume.value = calculate_volume(ms.current_mesh().vertex_matrix(), ms.current_mesh().face_matrix())
-            # calculate compactness
-            Compactness.value = (36 * math.pi * Volume.value ** 2) ** (1 / 3) / Surface_area.value
-            # calculate Axis aligned bounding box
-            AABB_volume.value = ms.current_mesh().bounding_box().dim_x() * ms.current_mesh().bounding_box().dim_y() * ms.current_mesh().bounding_box().dim_z()
-            # calculate eccentricity
-            scale_long = max(ms.current_mesh().bounding_box().dim_x(), ms.current_mesh().bounding_box().dim_y(),
-                             ms.current_mesh().bounding_box().dim_z())
-            scale_min = min(ms.current_mesh().bounding_box().dim_x(), ms.current_mesh().bounding_box().dim_y(),
-                            ms.current_mesh().bounding_box().dim_z())
-            Eccentricity.value = math.sqrt(1 - (scale_min / scale_long) ** 2)
-            # calculate rectangularity
-            Rectangularity.value = AABB_volume.value / Volume.value
-            # calculate convexivity
-            Convexivity.value = Volume.value / AABB_volume.value
-            # find longest distance between two points
-            distances = np.linalg.norm(ms.current_mesh().vertex_matrix() - ms.current_mesh().vertex_matrix().mean(axis=0), axis=1)
-            Diameter.value = distances.max()
             ms.save_current_mesh(os.path.join(output_dir, *(mesh.name.split("/"))))
 
         clear_all_meshes_obj()
@@ -357,6 +334,9 @@ def main() -> None:
     preprocessmenu.add_command(label="Scale", command=do_scale)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
+    extractmenu = Menu(menubar, tearoff=0)
+    extractmenu.add_command(label="Extract feautures", command=get_elem_features)
+    menubar.add_cascade(label="Extract", menu=extractmenu)
     root.config(menu=menubar)
 
     current_mesh_label = Label(root, text="Current mesh")
