@@ -26,6 +26,28 @@ def get_principal_components(vertex_matrix):
     return principal_components
 
 
+def get_mass_directions(vertex_matrix, face_matrix):
+    face_centres = np.ndarray((len(face_matrix), 3))
+    for i, face in enumerate(face_matrix):
+        xs, ys, zs = [], [], []
+        for v in face:
+            xs.append(vertex_matrix[v][0])
+            ys.append(vertex_matrix[v][1])
+            zs.append(vertex_matrix[v][2])
+        x = np.mean(xs)
+        y = np.mean(ys)
+        z = np.mean(zs)
+        face_centres[i] = np.array([x, y, z])
+
+    fx, fy, fz = 0, 0, 0
+    for center in face_centres:
+        fx += sign(center[0]) * center[0] ** 2
+        fy += sign(center[1]) * center[1] ** 2
+        fz += sign(center[2]) * center[2] ** 2
+
+    return np.array([sign(fx), sign(fy), sign(fz)])
+
+
 def dot(a, b):
     return sum([a[i] * b[i] for i in range(len(a))])
 
@@ -79,5 +101,22 @@ def draw_histogram(arr_x, arr_y, min, max, mean=None, std=None, xlabel="Bin size
     #        plt.text(width * i * 2, arr_y[i], str(arr_x[i]), fontsize=10)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.show()
+    return fig
+
+
+def draw_grouped_histogram(arr_x, arrs_y, x_label="Bin size", y_label="Number of meshes"):
+    plt.rcParams["figure.figsize"] = [13, 6]
+    plt.rcParams["figure.autolayout"] = True
+    fig, ax = plt.subplots()
+    width = max(arr_x) / (len(arr_x) * len(arrs_y[0]) * (max(arr_x) - min(arr_x)))
+    x = np.arange(len(arr_x))
+    for i, arr_y in enumerate(arrs_y):
+        ax.bar(x + i * width, arr_y, width=width, align='edge')
+    ax.set_xticks(x + (width * 1.5))
+    ax.set_xticklabels(arr_x)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    ax.legend(["x", "y", "z"], loc='upper left', ncols=3)
     plt.show()
     return fig

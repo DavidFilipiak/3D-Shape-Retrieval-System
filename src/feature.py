@@ -13,6 +13,7 @@ feature_list = [
     "bb_diagonal",
     "barycenter",
     "major_eigenvector",
+    "mass_directions",
 ]
 
 descriptor_list = [
@@ -30,6 +31,7 @@ descriptor_list = [
 vector_feature_list = [
     "barycenter",
     "major_eigenvector",
+    "mass_directions",
 ]
 
 
@@ -169,6 +171,11 @@ class MajorEigenvector(VectorFeature):
         super().__init__("major_eigenvector", -1.2, 1.2, value)
 
 
+class MassDirections(VectorFeature):
+    def __init__(self, value):
+        super().__init__("mass_directions", -1, 1, value)
+
+
 ###############
 # DESCRIPTORS
 ###############
@@ -236,4 +243,5 @@ show_feature_dict = {
     "bb_diagonal": Bb_diagonal(0),
     "barycenter": Barycenter(np.zeros(3)),
     "major_eigenvector": MajorEigenvector(np.zeros(3)),
+    "mass_directions": MassDirections(np.zeros(3)),
 }

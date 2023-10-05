@@ -336,30 +336,17 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 def flip(mesh:Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_matrix = meshSet.current_mesh().vertex_matrix()
     face_matrix = meshSet.current_mesh().face_matrix()
-    face_centres = np.ndarray((len(face_matrix), 3))
-    for i, face in enumerate(face_matrix):
-        xs, ys, zs = [], [], []
-        for v in face:
-            xs.append(vertex_matrix[v][0])
-            ys.append(vertex_matrix[v][1])
-            zs.append(vertex_matrix[v][2])
-        x = np.mean(xs)
-        y = np.mean(ys)
-        z = np.mean(zs)
-        face_centres[i] = np.array([x, y, z])
 
-    fx, fy, fz = 0, 0, 0
-    for center in face_centres:
-        fx += sign(center[0]) * center[0]**2
-        fy += sign(center[1]) * center[1]**2
-        fz += sign(center[2]) * center[2]**2
-
+    x, y, z = get_mass_directions(vertex_matrix, face_matrix)
     transform_matrix = np.eye(4)
-    transform_matrix[0, 0] = sign(fx)
-    transform_matrix[1, 1] = sign(fy)
-    transform_matrix[2, 2] = sign(fz)
+    transform_matrix[0, 0] = x
+    transform_matrix[1, 1] = y
+    transform_matrix[2, 2] = z
 
     meshSet.set_matrix(transformmatrix=transform_matrix)
-    #print(face_matrix.shape, face_matrix)
+
+    mesh.set_params(
+        mass_directions=np.array([x, y, z])
+    )
 
     return mesh

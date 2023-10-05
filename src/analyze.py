@@ -24,6 +24,8 @@ class Analysis:
     std_all = 0
     outliers = np.asarray([])
     histogram = (np.asarray([]), np.asarray([]))
+    values = np.asarray([])
+    all = np.asarray([])
 
     def __init__(self):
         pass
@@ -76,6 +78,8 @@ def analyze_feature_all(table: pd.DataFrame, min_view: float, max_view: float) -
     analysis.std_view = std
     analysis.outliers = outliers
     analysis.histogram = histogram
+    analysis.values = values
+    analysis.all = array
     return analysis
 
 
@@ -96,6 +100,24 @@ def analyze_major_eigenvector_dot_with_x_axis(table: pd.DataFrame, colName: str)
     extract["dot_products"] = pd.Series(dot_products).values
 
     return analyze_feature_all(extract, -1, 1)
+
+def analyze_mass_orientation(table: pd.DataFrame, colName: str):
+    extract = pd.DataFrame(table["name"])
+    array = np.asarray(table[colName].tolist())
+    arr_x = array[:, 0]
+    arr_y = array[:, 1]
+    arr_z = array[:, 2]
+
+    extract["mass_x"] = pd.Series(arr_x).values
+    analysis_x = analyze_feature_all(extract, -1, 1)
+    extract = extract.drop("mass_x", axis=1)
+    extract["mass_y"] = pd.Series(arr_y).values
+    analysis_y = analyze_feature_all(extract, -1, 1)
+    extract = extract.drop("mass_y", axis=1)
+    extract["mass_z"] = pd.Series(arr_z).values
+    analysis_z = analyze_feature_all(extract, -1, 1)
+
+    return (analysis_x, analysis_y, analysis_z)
 
 
 

@@ -47,6 +47,7 @@ def add_mesh_to_system(filename=""):
         bb_diagonal=current_mesh.bounding_box().diagonal(),
         barycenter=get_barycenter(current_mesh.vertex_matrix()),
         major_eigenvector=get_principal_components(current_mesh.vertex_matrix())[0][1],
+        mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
         #volume=out_dict_geom['mesh_volume'],
         #surface_area=out_dict_geom['surface_area'],
         #average_edge_length=out_dict_geom['avg_edge_length'],
@@ -240,6 +241,13 @@ def analyze_feature(feature):
         analysis = analyze_major_eigenvector_dot_with_x_axis(table, "major_eigenvector")
         xlabel = "Dot product with x-axis"
         ylabel = "Frequency"
+    elif feature == "mass_directions":
+        analysis_x, analysis_y, analysis_z = analyze_mass_orientation(table, "mass_directions")
+        x_plus, x_minus = len(analysis_x.all[analysis_x.all > 0]), len(analysis_x.all[analysis_x.all < 0])
+        y_plus, y_minus = len(analysis_y.all[analysis_y.all > 0]), len(analysis_y.all[analysis_y.all < 0])
+        z_plus, z_minus = len(analysis_z.all[analysis_z.all > 0]), len(analysis_z.all[analysis_z.all < 0])
+        histogram = draw_grouped_histogram([-1, 1], [[x_minus, x_plus], [y_minus, y_plus], [z_minus, z_plus]], x_label="Mass orientation", y_label="Frequency")
+        return
     else:
         feature_obj = show_feature_dict[feature]
         analysis = analyze_feature_all(table[["name", feature]], feature_obj.min, feature_obj.max)
