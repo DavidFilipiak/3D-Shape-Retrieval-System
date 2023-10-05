@@ -16,7 +16,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     face_areas = calculate_face_area(meshSet.current_mesh().face_matrix(), meshSet.current_mesh().vertex_matrix())
     # filtered_list = [x for x in face_areas if x != 0]
     hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    draw_histogram(hist_x[:-1], hist_y, 0, 0.1, xlabel='Face area', ylabel='Number of faces')
+    draw_histogram(hist_x[:-1], hist_y, 0, 0.012, xlabel='Face area', ylabel='Number of faces')
     TARGET = 10000
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
@@ -52,7 +52,6 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         print("Decimated to", numFaces, "faces mesh has", meshSet.current_mesh().vertex_number(), "vertex")
         # Refine our estimation to slowly converge to TARGET vertex number
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
-    #meshSet.save_current_mesh(os.path.join(result_filename,mesh.name.split('.')[0] + "_resampled.obj"))
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
         num_faces =current_mesh.vertex_number(),
@@ -62,51 +61,8 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
     #filtered_list = [x for x in face_areas if x != 0]
     hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    draw_histogram(hist_x[:-1], hist_y, 0, 0.002, xlabel='Face area', ylabel='Number of faces')
+    draw_histogram(hist_x[:-1], hist_y,0,0.0001, xlabel='Face area', ylabel='Number of faces')
     return mesh
-
-
-'''
-TO DELETE AFTERWARDS
-'''
-def draw_histogram_resample(x):
-    # Create a fullscreen figure
-    fig = plt.figure(figsize=(20, 10))
-
-    # Calculate the number of bins using the Freedman-Diaconis rule
-    q25, q75 = np.percentile(x, [25, 75])
-    bin_width = 2 * (q75 - q25) * len(x) ** (-1 / 3)
-    num_bins = round((x.max() - x.min()) / bin_width)
-
-    # Create the histogram
-    hist, bins, _ = plt.hist(x, bins=num_bins, edgecolor='black')
-
-    # Find the mode (most frequent value) and its bin
-    mode_bin = bins[np.argmax(hist)]
-
-    # Calculate the range for the x-axis to center the mode
-    x_min = mode_bin - (bin_width * num_bins) / 2
-    x_max = mode_bin + (bin_width * num_bins) / 2
-
-    # Calculate the shift amount to center the distribution around the mode
-    shift_amount = mode_bin - np.mean(x)
-
-    # Apply the shift to the data
-    shifted_x = x + shift_amount
-
-    # Create a new histogram using the shifted data
-    hist, bins, _ = plt.hist(shifted_x, bins=num_bins, edgecolor='black')
-
-    # Set the x-axis range for the centered histogram
-    plt.xlim(x_min, x_max)
-
-    # Set the plot title and labels
-    plt.title('Distribution of face areas (Centered around Mode)')
-    plt.xlabel('Value')
-    plt.ylabel('Number of face areas')
-
-    # Show the plot
-    plt.show()
 
 def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
     TARGET_LOW = 8000
@@ -253,73 +209,7 @@ def find_rotation_matrix(A, B):
     return R
 
 def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
-    """
-    print("ORIGINAL MESH")
-    vertex_matrix = meshSet.current_mesh().vertex_matrix()
-    print(vertex_matrix.shape, vertex_matrix)
-    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
-    print(covariance_matrix.shape, covariance_matrix)
-    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
-    print(eigenvalues.shape, eigenvalues)
-    print(eigenvectors.shape, eigenvectors)
-
-    principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
-    principal_components.sort(key=lambda x: x[0], reverse=False)
-
-    print('MY APPROACH MESH')
-    #meshSet.set_matrix(transformmatrix=rot_matrix_z_axis)
-    #meshSet.set_matrix(transformmatrix=rot_matrix_x_axis)
-    #meshSet.set_matrix(transformmatrix=rot_matrix_y_axis)
-
-
-    updated_coords = np.ndarray((len(vertex_matrix), 3))
-    face_matrix = meshSet.current_mesh().face_matrix()
-    barycenter = get_barycenter(vertex_matrix)
-    print("barycenter", barycenter)
-    print("len e1", np.linalg.norm(principal_components[0][1]))
-    print("len e2", np.linalg.norm(principal_components[1][1]))
-    for i, vertex in enumerate(vertex_matrix):
-        x = dot(barycenter - vertex, principal_components[0][1])
-        y = dot(barycenter - vertex, principal_components[1][1])
-        z = dot(barycenter - vertex, np.cross(principal_components[0][1], principal_components[1][1]))
-        updated_coords[i] = np.array([x, y, z])
-        print(updated_coords[i])
-
-
-    print("dot", np.transpose(updated_coords).dot(vertex_matrix))
-    covariance_matrix = np.cov(np.transpose(updated_coords))  # transpose, so that we get a 3x3 instead of nxn matrix
-    print(covariance_matrix.shape, covariance_matrix)
-    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
-    print(eigenvalues.shape, eigenvalues)
-    print(eigenvectors.shape, eigenvectors)
-    print("dot1", eigenvectors[0].dot(eigenvectors[1]), "len1", np.linalg.norm(eigenvectors[0]))
-    print("dot2", eigenvectors[0].dot(eigenvectors[2]), "len2", np.linalg.norm(eigenvectors[1]))
-    print("dot3", eigenvectors[1].dot(eigenvectors[2]), "len3", np.linalg.norm(eigenvectors[2]))
-
-    rotation_matrix = find_rotation_matrix(updated_coords, vertex_matrix)
-    rotation_matrix = np.pad(rotation_matrix, ((0, 1), (0, 1)), mode='constant', constant_values=0)
-    print("rotation matrix", rotation_matrix)
-    rotation_matrix[3, 3] = 1
-    transfrom_matrix = np.pad(eigenvectors.T, ((0, 1), (0, 1)), mode='constant', constant_values=0)
-    meshSet.set_matrix(transformmatrix=transfrom_matrix)
-
-
-    print("CONTROL MESH")
-    """
     meshSet.compute_matrix_by_principal_axis()
-
-    """
-    vertex_matrix = meshSet.current_mesh().vertex_matrix()
-    print(vertex_matrix.shape, vertex_matrix)
-    covariance_matrix = np.cov(np.transpose(vertex_matrix))  # transpose, so that we get a 3x3 instead of nxn matrix
-    print(covariance_matrix.shape, covariance_matrix)
-    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
-    print(eigenvalues.shape, eigenvalues)
-    print(eigenvectors.shape, eigenvectors)
-
-    print(updated_coords - vertex_matrix)
-    """
-
     current_mesh = meshSet.current_mesh()
     principal_components = get_principal_components(current_mesh.vertex_matrix())
     mesh.set_params(
@@ -329,7 +219,6 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
         bb_diagonal=current_mesh.bounding_box().diagonal(),
         major_eigenvector=principal_components[0][1],
     )
-
     return mesh
 
 

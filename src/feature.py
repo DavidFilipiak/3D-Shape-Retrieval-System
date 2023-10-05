@@ -18,13 +18,13 @@ feature_list = [
 descriptor_list = [
     "volume",
     "surface_area",
-    "connected_components_number",
     "convex_hull",
     "eccentricity"
     "compactness",
     "rectangularity",
     "diameter",
     "aabb_volume",
+    "convexivity",
 ]
 
 vector_feature_list = [
@@ -208,7 +208,7 @@ class Surface_area(ScalarFeature):
         super().__init__("surface_area", 0, 100000, value)
 
 
-class Connected_components_number(ScalarFeature):
+class Compactness(ScalarFeature):
     def __init__(self, value):
         super().__init__("connected_components_number", 0, 100000, value)
 
