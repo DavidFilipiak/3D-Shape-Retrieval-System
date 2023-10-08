@@ -96,10 +96,28 @@ def analyze_major_eigenvector_dot_with_x_axis(table: pd.DataFrame, colName: str)
     extract = pd.DataFrame(table["name"])
     array = np.asarray(table[colName].tolist())
     x_axis = np.asarray([1, 0, 0])
-    dot_products = np.dot(array, x_axis)
+    dot_products = np.absolute(np.dot(array, x_axis))
     extract["dot_products"] = pd.Series(dot_products).values
 
-    return analyze_feature_all(extract, -1, 1)
+    return analyze_feature_all(extract, 0, 1)
+
+def analyze_median_eigenvector_dot_with_y_axis(table: pd.DataFrame, colName: str):
+    extract = pd.DataFrame(table["name"])
+    array = np.asarray(table[colName].tolist())
+    y_axis = np.asarray([0, 1, 0])
+    dot_products = np.absolute(np.dot(array, y_axis))
+    extract["dot_products"] = pd.Series(dot_products).values
+
+    return analyze_feature_all(extract, 0, 1)
+
+def analyze_minor_eigenvector_dot_with_z_axis(table: pd.DataFrame, colName: str):
+    extract = pd.DataFrame(table["name"])
+    array = np.asarray(table[colName].tolist())
+    z_axis = np.asarray([0, 0, 1])
+    dot_products = np.absolute(np.dot(array, z_axis))
+    extract["dot_products"] = pd.Series(dot_products).values
+
+    return analyze_feature_all(extract, 0, 1)
 
 def analyze_mass_orientation(table: pd.DataFrame, colName: str):
     extract = pd.DataFrame(table["name"])

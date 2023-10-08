@@ -31,6 +31,7 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
+    principal_components = get_principal_components(current_mesh.vertex_matrix())
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -43,9 +44,10 @@ def add_mesh_to_system(filename=""):
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
         barycenter=get_barycenter(current_mesh.vertex_matrix()),
-        major_eigenvector=get_principal_components(current_mesh.vertex_matrix())[0][1],
+        major_eigenvector=principal_components[0][1],
+        median_eigenvector=principal_components[1][1],
+        minor_eigenvector=principal_components[2][1],
         mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
-
     )
     meshes[mesh.name] = mesh
     curr_mesh = mesh

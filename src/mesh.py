@@ -19,6 +19,8 @@ class Mesh():
     bb_diagonal = Bb_diagonal(0)
     barycenter = Barycenter(np.zeros(3))
     major_eigenvector = MajorEigenvector(np.zeros(3))
+    median_eigenvector = MedianEigenvector(np.zeros(3))
+    minor_eigenvector = MinorEigenvector(np.zeros(3))
     mass_directions = MassDirections(np.zeros(3))
     volume = Volume(0)
     surface_area = Surface_area(0)
