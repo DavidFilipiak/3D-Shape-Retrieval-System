@@ -88,7 +88,7 @@ def draw_histogram(arr_x, arr_y, min, max, mean=None, std=None, xlabel="Bin size
     if np.max(arr_x) < max:
         max = np.max(arr_x)
 
-    width = (max - min) / len(arr_x)
+    width = ((max - min) / len(arr_x))
 
     print(width, max, min, len(arr_x))
     fig = plt.bar(arr_x, arr_y, width=width, color="blue", align='edge')

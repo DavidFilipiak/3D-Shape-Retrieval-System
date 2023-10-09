@@ -31,7 +31,7 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
-    principal_components = get_principal_components(current_mesh.vertex_matrix())
+    #principal_components = get_principal_components(current_mesh.vertex_matrix())
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -43,11 +43,11 @@ def add_mesh_to_system(filename=""):
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
-        barycenter=get_barycenter(current_mesh.vertex_matrix()),
-        major_eigenvector=principal_components[0][1],
-        median_eigenvector=principal_components[1][1],
-        minor_eigenvector=principal_components[2][1],
-        mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
+        #barycenter=get_barycenter(current_mesh.vertex_matrix()),
+        #major_eigenvector=principal_components[0][1],
+        #median_eigenvector=principal_components[1][1],
+        #minor_eigenvector=principal_components[2][1],
+        #mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
     )
     meshes[mesh.name] = mesh
     curr_mesh = mesh
@@ -67,13 +67,13 @@ def browse_button() -> None:
 def load_files_recursively(topdir, extension, limit=-1, offset=0, count=0) -> int:
     if limit == 0:
         return count
-    elif 0 < limit <= count:
+    elif 0 < limit <= (count - offset):
         return count
 
     root, dirs, files = list(os.walk(topdir))[0]
     for file in files:
         if file.endswith(extension):
-            if 0 < limit <= count:
+            if 0 < limit <= (count - offset):
                 return count
             if count < offset:
                 count += 1
@@ -104,6 +104,8 @@ def load_all_meshes_csv() -> None:
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
 def clear_all_meshes_obj() -> None:
+    global meshes
+    meshes = {}
     database.clear_table()
     ms.clear()
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
@@ -158,7 +160,7 @@ def batch_preprocess():
     global meshes
     output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    batch_size = 1
+    batch_size = 20
     batch_offset = 0
     pipeline = Pipeline(ms)
     pipeline.add(translate_to_origin)
@@ -166,8 +168,6 @@ def batch_preprocess():
     pipeline.add(resample_mesh)
     pipeline.add(align)
     pipeline.add(flip)
-
-   # pipeline.add(resample_mesh_david_attempt)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
     while file_count == batch_size:
@@ -184,6 +184,7 @@ def batch_preprocess():
         if batch_size == -1:
             break
         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+        file_count = file_count - (batch_size * (batch_offset // batch_size))
 
 
 
@@ -251,8 +252,8 @@ def do_analyze_current_mesh(feature):
     print(curr_mesh)
 
     if feature == "face_areas":
-        #MAX = 0.012  # before preprocess
-        MAX = 0.0001  # after preprocess
+        MAX = 0.012  # before preprocess
+        #MAX = 0.0001  # after preprocess
         current_mesh = ms.current_mesh()
         face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
         hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
@@ -304,6 +305,14 @@ def do_flip():
     meshes = {mesh.name: mesh for mesh in aligned_meshes}
     print("Flipped")
 
+def do_stitch_holes():
+    global meshes
+    p = Pipeline(ms)
+    p.add(stitch_holes)
+    aligned_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in aligned_meshes}
+    print("Stitched holes")
+
 
 def do_nothing():
     pass
@@ -353,11 +362,13 @@ def main() -> None:
     preprocessmenu.add_command(label="Batch", command=batch_preprocess)
     preprocessmenu.add_command(label="Full", command=do_nothing)
     preprocessmenu.add_separator()
-    preprocessmenu.add_command(label="Resample", command=do_resample)
     preprocessmenu.add_command(label="Translate", command=do_translate)
+    preprocessmenu.add_command(label="Scale", command=do_scale)
+    preprocessmenu.add_command(label="Resample", command=do_resample)
     preprocessmenu.add_command(label="Align", command=do_align)
     preprocessmenu.add_command(label="Flip", command=do_flip)
-    preprocessmenu.add_command(label="Scale", command=do_scale)
+    preprocessmenu.add_separator()
+    preprocessmenu.add_command(label="Stitch Holes", command=do_stitch_holes)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
 
     extractmenu = Menu(menubar, tearoff=0)
