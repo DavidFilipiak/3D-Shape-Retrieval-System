@@ -145,23 +145,6 @@ def show():
     ms.show_polyscope()
 
 
-def do_translate():
-    global ms, curr_mesh, meshes
-    p = Pipeline(ms)
-    p.add(translate_to_origin)
-    normalized_meshes = p.run(list(meshes.values()))
-    meshes = {mesh.name: mesh for mesh in normalized_meshes}
-    print("Moved to origin")
-
-
-def do_scale():
-    global meshes
-    p = Pipeline(ms)
-    p.add(scale_to_unit_cube)
-    normalized_meshes = p.run(list(meshes.values()))
-    meshes = {mesh.name: mesh for mesh in normalized_meshes}
-    print("Scaled to unit cube")
-
 def get_elem_features():
     global meshes
     p = Pipeline(ms)
@@ -189,7 +172,7 @@ def batch_preprocess():
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
     while file_count == batch_size:
         batch_offset += batch_size
-        pipeline.run(list(meshes.values()))
+        pipeline.run(list(meshes.values()), verbose=True)
         for mesh in meshes.values():
             ms.set_current_mesh(mesh.pymeshlab_id)
             if not os.path.exists(os.path.join(output_dir, mesh.name.split("/")[0])):
@@ -219,6 +202,14 @@ def analyze_feature(feature):
     elif feature == "major_eigenvector":
         analysis = analyze_major_eigenvector_dot_with_x_axis(table, "major_eigenvector")
         xlabel = "Dot product with x-axis"
+        ylabel = "Frequency"
+    elif feature == "median_eigenvector":
+        analysis = analyze_median_eigenvector_dot_with_y_axis(table, "median_eigenvector")
+        xlabel = "Dot product with y-axis"
+        ylabel = "Frequency"
+    elif feature == "minor_eigenvector":
+        analysis = analyze_minor_eigenvector_dot_with_z_axis(table, "minor_eigenvector")
+        xlabel = "Dot product with z-axis"
         ylabel = "Frequency"
     elif feature == "mass_directions":
         analysis_x, analysis_y, analysis_z = analyze_mass_orientation(table, "mass_directions")
@@ -254,9 +245,40 @@ def analyze_feature(feature):
     histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_view, analysis.max_view, mean=mean, std=std, xlabel=xlabel, ylabel=ylabel)
 
 
+def do_analyze_current_mesh(feature):
+    global curr_mesh
+    print("Current Mesh")
+    print(curr_mesh)
+
+    if feature == "face_areas":
+        #MAX = 0.012  # before preprocess
+        MAX = 0.0001  # after preprocess
+        current_mesh = ms.current_mesh()
+        face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
+        hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
+        draw_histogram(hist_x[:-1], hist_y, 0, MAX, xlabel='Face area', ylabel='Number of faces')
+
+
+def do_translate():
+    global meshes
+    p = Pipeline(ms)
+    p.add(translate_to_origin)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Moved to origin")
+
+
+def do_scale():
+    global meshes
+    p = Pipeline(ms)
+    p.add(scale_to_unit_cube)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Scaled to unit cube")
+
 
 def do_resample():
-    global ms, curr_mesh,meshes
+    global meshes
     p = Pipeline(ms)
     rec_path = os.path.join(os.path.dirname(current_dir), 'db')
     p.add(resample_mesh, result_filename= rec_path)
@@ -317,7 +339,9 @@ def main() -> None:
     menubar.add_cascade(label="Show", menu=showmenu)
     # Analyze menu
     analyzemenu = Menu(menubar, tearoff=0)
-    analyzemenu.add_command(label="Current Mesh", command=do_nothing)
+    current_mesh_featuresmenu = Menu(analyzemenu, tearoff=0)
+    current_mesh_featuresmenu.add_command(label="Face Areas", command=lambda: do_analyze_current_mesh("face_areas"))
+    analyzemenu.add_cascade(label="Current Mesh", menu=current_mesh_featuresmenu)
     analyzemenu.add_separator()
     featuresmenu = Menu(analyzemenu, tearoff=0)
     for feature in show_feature_dict.keys():

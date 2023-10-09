@@ -89,7 +89,7 @@ def analyze_bary_distance_to_origin_all(table: pd.DataFrame, colName: str):
     distances = np.linalg.norm(array, axis=1)
     extract["distances"] = pd.Series(distances).values
 
-    return analyze_feature_all(extract, 0, 300)
+    return analyze_feature_all(extract, 0, 20)
 
 
 def analyze_major_eigenvector_dot_with_x_axis(table: pd.DataFrame, colName: str):

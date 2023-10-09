@@ -22,7 +22,7 @@ descriptor_list = [
     "volume",
     "surface_area",
     "convex_hull",
-    "eccentricity"
+    "eccentricity",
     "compactness",
     "rectangularity",
     "diameter",
@@ -162,7 +162,7 @@ class Bb_dim_z(ScalarFeature):
 
 class Bb_diagonal(ScalarFeature):
     def __init__(self, value):
-        super().__init__("bb_diagonal", 0, 200, value)
+        super().__init__("bb_diagonal", 0, 30, value)
 
 
 class Barycenter(VectorFeature):

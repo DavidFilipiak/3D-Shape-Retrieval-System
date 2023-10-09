@@ -29,6 +29,8 @@ class Mesh():
     convex_hull = Convex_hull(0)
     eccentricity = Eccentricity(0)
     rectangularity = Rectangularity(0)
+    diameter = Diameter(0)
+    aabb_volume = AABB_volume(0)
 
     def __init__(self, id):
         self.pymeshlab_id = id
@@ -44,6 +46,8 @@ class Mesh():
         string = ""
         for feature in feature_list:
             string += f"{feature}: {getattr(self, feature)}\n"
+        for descriptor in descriptor_list:
+            string += f"{descriptor}: {getattr(self, descriptor)}\n"
         return string
 
     def create_features(self):

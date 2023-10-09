@@ -4,11 +4,10 @@ from mesh import Mesh
 
 
 class Pipeline:
-    pipeline = []
-    func_args = {}
-
     def __init__(self, meshSet: pymeshlab.MeshSet):
         self.ms = meshSet
+        self.pipeline = []
+        self.func_args = {}
 
     def add(self, modifier, **kwargs) -> None:
         self.pipeline.append(modifier)

@@ -13,10 +13,6 @@ REMESH -  if vertices > TARGET reduce them
 '''
 
 def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
-    face_areas = calculate_face_area(meshSet.current_mesh().face_matrix(), meshSet.current_mesh().vertex_matrix())
-    # filtered_list = [x for x in face_areas if x != 0]
-    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    draw_histogram(hist_x[:-1], hist_y, 0, 0.012, xlabel='Face area', ylabel='Number of faces')
     TARGET = 10000
     iter = 0
     # Estimate number of faces to have 100+10000 vertex using Euler
@@ -57,11 +53,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         num_faces =current_mesh.vertex_number(),
         num_vertices=current_mesh.face_number()
     )
-    #FACE AREA HISTOGRAM
-    face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
-    #filtered_list = [x for x in face_areas if x != 0]
-    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    draw_histogram(hist_x[:-1], hist_y,0,0.0001, xlabel='Face area', ylabel='Number of faces')
+
     return mesh
 
 def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
@@ -218,6 +210,8 @@ def align(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
         major_eigenvector=principal_components[0][1],
+        median_eigenvector=principal_components[1][1],
+        minor_eigenvector=principal_components[2][1]
     )
     return mesh
 
