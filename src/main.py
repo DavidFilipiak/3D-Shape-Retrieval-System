@@ -10,7 +10,8 @@ from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
 from preprocess import *
-from src.feature_extraction_elem import get_elementary_features, stitch_holes
+from postprocess import *
+from src.feature_extraction_elem import get_elementary_features
 from utils import *
 from pipeline import Pipeline
 from feature import *
@@ -318,6 +319,13 @@ def do_stitch_holes():
     meshes = {mesh.name: mesh for mesh in aligned_meshes}
     print("Stitched holes")
 
+def do_fix_face_normals():
+    global meshes
+    p = Pipeline(ms)
+    p.add(fix_face_normals)
+    fixed_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in fixed_meshes}
+    print("Fixed face normals")
 
 def do_nothing():
     pass
@@ -377,10 +385,13 @@ def main() -> None:
     preprocessmenu.add_command(label="Resample", command=do_resample)
     preprocessmenu.add_command(label="Align", command=do_align)
     preprocessmenu.add_command(label="Flip", command=do_flip)
-    preprocessmenu.add_separator()
-    preprocessmenu.add_command(label="Stitch Holes", command=do_stitch_holes)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
-
+    # Postprocess menu
+    postprocessmenu = Menu(menubar, tearoff=0)
+    postprocessmenu.add_command(label="Stitch Holes", command=do_stitch_holes)
+    postprocessmenu.add_command(label="Fix Face Normals", command=do_fix_face_normals)
+    menubar.add_cascade(label="Postprocess", menu=postprocessmenu)
+    # Extract menu
     extractmenu = Menu(menubar, tearoff=0)
     extractmenu.add_command(label="Extract feautures", command=get_elem_features)
     menubar.add_cascade(label="Extract", menu=extractmenu)
