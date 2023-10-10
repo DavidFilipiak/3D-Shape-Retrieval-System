@@ -1,5 +1,10 @@
 import numpy as np
 
+id_list = [
+    "name",
+    "class_name"
+]
+
 feature_list = [
     "name",
     "class_name",

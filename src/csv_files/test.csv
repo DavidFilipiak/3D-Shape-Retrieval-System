@@ -1,17 +1,17 @@
-volume,surface_area,eccentricity,compactness,rectangularity,diameter,aabb_volume,convexivity,ch_volume,ch_surface_area,ch_eccentricity,ch_compactness,ch_rectangularity,ch_diameter,ch_aabb_volume,ch_convexivity
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
-volume: 0,surface_area: 0,eccentricity: 0,compactness: 0,rectangularity: 0,diameter: 0,obb_volume: 0,convexivity: 0,ch_volume: 0,ch_surface_area: 0,ch_eccentricity: 0,ch_compactness: 0,ch_rectangularity: 0,ch_diameter: 0,ch_aabb_volume: 0,ch_convexivity: 0
+name,class_name,volume,surface_area,eccentricity,compactness,rectangularity,diameter,aabb_volume,convexivity,ch_volume,ch_surface_area,ch_eccentricity,ch_compactness,ch_rectangularity,ch_diameter,ch_aabb_volume,ch_convexivity
+AircraftBuoyant/m1337.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1338.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1339.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1340.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1341.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1342.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1343.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1344.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1345.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1346.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1347.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1348.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1349.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1350.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1351.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AircraftBuoyant/m1352.obj,AircraftBuoyant,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

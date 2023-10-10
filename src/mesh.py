@@ -9,6 +9,7 @@ meshes = {}
 class Mesh():
     name = Name("")
     class_name = Class_name("")
+
     num_vertices = Num_vertices(0)
     num_faces = Num_faces(0)
     num_triangles = Num_triangles(0)

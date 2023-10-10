@@ -49,6 +49,8 @@ def add_mesh_to_system(filename=""):
         #minor_eigenvector=principal_components[2][1],
         #mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
     )
+    for param in descriptor_list:
+        setattr(mesh, param, 0)
     meshes[mesh.name] = mesh
     curr_mesh = mesh
     current_mesh_label.config(text=f"Current mesh: {mesh.name}")
@@ -129,10 +131,10 @@ def save_current_mesh_obj() -> None:
 
 def save_all_meshes_csv(feature_list_to_save) -> None:
     filename = filedialog.asksaveasfilename(title="CSV save", initialdir=current_dir, filetypes=[('CSV files', '*.csv')])
-    feature_dict = {feature: [] for feature in feature_list_to_save}
+    feature_dict = {feature: [] for feature in id_list + feature_list_to_save}
     for mesh in meshes.values():
         f = mesh.get_features_dict()
-        for feature in feature_list_to_save:
+        for feature in id_list + feature_list_to_save:
             feature_dict[feature].append(f[feature])
     df = pd.DataFrame(feature_dict)
     database.add_table(df, name=filename.split('/')[-1].split('.')[0])
