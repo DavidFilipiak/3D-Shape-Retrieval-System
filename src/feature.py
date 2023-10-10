@@ -39,7 +39,15 @@ descriptor_list = [
     "ch_rectangularity",
     "ch_diameter",
     "ch_aabb_volume",
-    "ch_convexivity"
+    "ch_convexivity",
+]
+
+descriptor_shape_list = [
+    "a3",
+    "d1",
+    "d2",
+    "d3",
+    "d4"
 ]
 
 vector_feature_list = [
@@ -48,6 +56,11 @@ vector_feature_list = [
     "median_eigenvector",
     "minor_eigenvector",
     "mass_directions",
+    "a1",
+    "d1",
+    "d2",
+    "d3",
+    "d4"
 ]
 
 
@@ -288,6 +301,28 @@ class CH_diameter(ScalarFeature):
         super().__init__("ch_diameter", 0, 100000, value)
 
 
+# more complicated feature descriptors
+class A3(VectorFeature):
+    def __init__(self, value):
+        super().__init__("a3", 0, 1, value)
+
+class D1(VectorFeature):
+    def __init__(self, value):
+        super().__init__("d1", 0, 1, value)
+
+class D2(VectorFeature):
+    def __init__(self, value):
+        super().__init__("d2", 0, 1, value)
+
+class D3(VectorFeature):
+    def __init__(self, value):
+        super().__init__("d3", 0, 1, value)
+
+class D4(VectorFeature):
+    def __init__(self, value):
+        super().__init__("d4", 0, 1, value)
+
+
 # this is just a dictionary of features that are displayed in the GUI and from which we grab the min and max values
 show_feature_dict = {
     "num_vertices": Num_vertices(0),
@@ -322,4 +357,12 @@ show_descriptor_dict = {
     "ch_diameter": CH_diameter(0),
     "ch_aabb_volume": CH_AABB_volume(0),
     "ch_convexivity": CH_convexivity(0)
+}
+
+show_descriptor_shape_dict = {
+    "a3": A3(np.zeros((2, 1))),
+    "d1": D1(np.zeros((2, 1))),
+    "d2": D2(np.zeros((2, 1))),
+    "d3": D3(np.zeros((2, 1))),
+    "d4": D4(np.zeros((2, 1)))
 }

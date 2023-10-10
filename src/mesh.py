@@ -40,6 +40,11 @@ class Mesh():
     ch_rectangularity = CH_rectangularity(0)
     ch_diameter = CH_diameter(0)
     ch_aabb_volume = CH_AABB_volume(0)
+    a3 = A3(np.zeros((2, 1)))
+    d1 = D1(np.zeros((2, 1)))
+    d2 = D2(np.zeros((2, 1)))
+    d3 = D3(np.zeros((2, 1)))
+    d4 = D4(np.zeros((2, 1)))
 
     def __init__(self, id):
         self.pymeshlab_id = id

@@ -12,6 +12,7 @@ from database import Database
 from preprocess import *
 from postprocess import *
 from src.feature_extraction_elem import get_elementary_features
+from feature_extraction_shape_property import *
 from utils import *
 from pipeline import Pipeline
 from feature import *
@@ -52,6 +53,8 @@ def add_mesh_to_system(filename=""):
     )
     for param in descriptor_list:
         setattr(mesh, param, 0)
+    for param in descriptor_shape_list:
+        setattr(mesh, param, np.zeros((2, 1)))
     meshes[mesh.name] = mesh
     curr_mesh = mesh
     current_mesh_label.config(text=f"Current mesh: {mesh.name}")
@@ -326,6 +329,31 @@ def do_fix_face_normals():
     meshes = {mesh.name: mesh for mesh in fixed_meshes}
     print("Fixed face normals")
 
+
+def do_a3():
+    global meshes
+    p = Pipeline(ms)
+    p.add(a3)
+    new_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in new_meshes}
+    print("Computed A3 shape descriptor")
+
+def do_d1():
+    global meshes
+    p = Pipeline(ms)
+    p.add(d1)
+    new_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in new_meshes}
+    print("Computed D1 shape descriptor")
+
+def do_d3():
+    global meshes
+    p = Pipeline(ms)
+    p.add(d3)
+    new_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in new_meshes}
+    print("Computed D3 shape descriptor")
+
 def do_nothing():
     pass
 
@@ -372,6 +400,8 @@ def main() -> None:
     descriptormenu = Menu(analyzemenu, tearoff=0)
     for descriptor in show_descriptor_dict.keys():
         descriptormenu.add_command(label=descriptor, command=lambda d=descriptor: analyze_feature(d))
+    for descriptor in show_descriptor_shape_dict.keys():
+        descriptormenu.add_command(label=descriptor, command=lambda d=descriptor: analyze_feature(d))
     analyzemenu.add_cascade(label="All descriptors (.csv)", menu=descriptormenu)
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
@@ -394,6 +424,9 @@ def main() -> None:
     extractmenu = Menu(menubar, tearoff=0)
     extractmenu.add_command(label="Extract feautures", command=get_elem_features)
     #extractmenu.add_command(label="Extract feautures convex", command=get_elem_features_for_convex_hull)
+    extractmenu.add_command(label="A3", command=do_a3)
+    extractmenu.add_command(label="D1", command=do_d1)
+    extractmenu.add_command(label="D3", command=do_d3)
     menubar.add_cascade(label="Extract", menu=extractmenu)
     root.config(menu=menubar)
 
