@@ -21,13 +21,20 @@ feature_list = [
 descriptor_list = [
     "volume",
     "surface_area",
-    "convex_hull",
     "eccentricity",
     "compactness",
     "rectangularity",
     "diameter",
     "aabb_volume",
     "convexivity",
+    "ch_volume",
+    "ch_surface_area",
+    "ch_eccentricity",
+    "ch_compactness",
+    "ch_rectangularity",
+    "ch_diameter",
+    "ch_aabb_volume",
+    "ch_convexivity"
 ]
 
 vector_feature_list = [
@@ -199,11 +206,6 @@ class Volume(ScalarFeature):
         super().__init__("volume", 0, 100000, value)
 
 
-class Convex_hull(ScalarFeature):
-    def __init__(self, value):
-        super().__init__("convex_hull", 0, 100000, value)
-
-
 class Eccentricity(ScalarFeature):
     def __init__(self, value):
         super().__init__("eccentricity", 0, 1, value)
@@ -229,11 +231,6 @@ class Surface_area(ScalarFeature):
         super().__init__("surface_area", 0, 100000, value)
 
 
-class Compactness(ScalarFeature):
-    def __init__(self, value):
-        super().__init__("connected_components_number", 0, 100000, value)
-
-
 # Axis aligned bounding box
 class AABB_volume(ScalarFeature):
     def __init__(self, value):
@@ -243,6 +240,47 @@ class AABB_volume(ScalarFeature):
 class Diameter(ScalarFeature):
     def __init__(self, value):
         super().__init__("diameter", 0, 100000, value)
+
+
+# convex hull descriptors
+class CH_volume(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_volume", 0, 100000, value)
+
+class CH_eccentricity(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_eccentricity", 0, 1, value)
+
+
+class CH_rectangularity(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_rectangularity", 0, 1, value)
+
+
+class CH_compactness(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_compactness", 0, 1, value)
+
+
+class CH_convexivity(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_convexivity", 0, 1, value)
+
+
+class CH_surface_area(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_surface_area", 0, 100000, value)
+
+
+# Axis aligned bounding box
+class CH_AABB_volume(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_aabb_volume", 0, 100000, value)
+
+
+class CH_diameter(ScalarFeature):
+    def __init__(self, value):
+        super().__init__("ch_diameter", 0, 100000, value)
 
 
 # this is just a dictionary of features that are displayed in the GUI and from which we grab the min and max values
@@ -260,4 +298,23 @@ show_feature_dict = {
     "median_eigenvector": MajorEigenvector(np.zeros(3)),
     "minor_eigenvector": MajorEigenvector(np.zeros(3)),
     "mass_directions": MassDirections(np.zeros(3)),
+}
+
+show_descriptor_dict = {
+    "volume": Volume(0),
+    "surface_area": Surface_area(0),
+    "eccentricity": Eccentricity(0),
+    "compactness": Compactness(0),
+    "rectangularity": Rectangularity(0),
+    "diameter": Diameter(0),
+    "aabb_volume": AABB_volume(0),
+    "convexivity": Convexivity(0),
+    "ch_volume": CH_volume(0),
+    "ch_surface_area": CH_surface_area(0),
+    "ch_eccentricity": CH_eccentricity(0),
+    "ch_compactness": CH_compactness(0),
+    "ch_rectangularity": CH_rectangularity(0),
+    "ch_diameter": CH_diameter(0),
+    "ch_aabb_volume": CH_AABB_volume(0),
+    "ch_convexivity": CH_convexivity(0)
 }

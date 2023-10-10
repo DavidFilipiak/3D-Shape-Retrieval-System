@@ -10,7 +10,7 @@ from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
 from preprocess import *
-from src.feature_extraction_elem import get_elementary_features
+from src.feature_extraction_elem import get_elementary_features, stitch_holes
 from utils import *
 from pipeline import Pipeline
 from feature import *
@@ -127,12 +127,12 @@ def save_current_mesh_obj() -> None:
     ms.save_current_mesh(filename)
 
 
-def save_all_meshes_csv() -> None:
+def save_all_meshes_csv(feature_list_to_save) -> None:
     filename = filedialog.asksaveasfilename(title="CSV save", initialdir=current_dir, filetypes=[('CSV files', '*.csv')])
-    feature_dict = {feature: [] for feature in feature_list}
+    feature_dict = {feature: [] for feature in feature_list_to_save}
     for mesh in meshes.values():
         f = mesh.get_features_dict()
-        for feature in feature_list:
+        for feature in feature_list_to_save:
             feature_dict[feature].append(f[feature])
     df = pd.DataFrame(feature_dict)
     database.add_table(df, name=filename.split('/')[-1].split('.')[0])
@@ -220,7 +220,10 @@ def analyze_feature(feature):
         histogram = draw_grouped_histogram([-1, 1], [[x_minus, x_plus], [y_minus, y_plus], [z_minus, z_plus]], x_label="Mass orientation", y_label="Frequency")
         return
     else:
-        feature_obj = show_feature_dict[feature]
+        if feature in show_feature_dict.keys():
+            feature_obj = show_feature_dict[feature]
+        else:
+            feature_obj = show_descriptor_dict[feature]
         analysis = analyze_feature_all(table[["name", feature]], feature_obj.min, feature_obj.max)
 
 
@@ -338,7 +341,8 @@ def main() -> None:
     filemenu.add_command(label="Clear Selected (.obj)", command=clear_selected_meshes_obj)
     filemenu.add_separator()
     filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
-    filemenu.add_command(label="Save All (.csv)", command=save_all_meshes_csv)
+    filemenu.add_command(label="Save All Features (.csv)", command=lambda: save_all_meshes_csv(feature_list))
+    filemenu.add_command(label="Save All Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_list))
     menubar.add_cascade(label="File", menu=filemenu)
     # Show menu
     showmenu = Menu(menubar, tearoff=0)
@@ -355,7 +359,11 @@ def main() -> None:
     featuresmenu = Menu(analyzemenu, tearoff=0)
     for feature in show_feature_dict.keys():
         featuresmenu.add_command(label=feature, command=lambda f=feature: analyze_feature(f))
-    analyzemenu.add_cascade(label="All Loaded Meshes (.csv)", menu=featuresmenu)
+    analyzemenu.add_cascade(label="All features (.csv)", menu=featuresmenu)
+    descriptormenu = Menu(analyzemenu, tearoff=0)
+    for descriptor in show_descriptor_dict.keys():
+        descriptormenu.add_command(label=descriptor, command=lambda d=descriptor: analyze_feature(d))
+    analyzemenu.add_cascade(label="All descriptors (.csv)", menu=descriptormenu)
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)

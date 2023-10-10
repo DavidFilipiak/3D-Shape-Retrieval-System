@@ -22,15 +22,23 @@ class Mesh():
     median_eigenvector = MedianEigenvector(np.zeros(3))
     minor_eigenvector = MinorEigenvector(np.zeros(3))
     mass_directions = MassDirections(np.zeros(3))
+
     volume = Volume(0)
     surface_area = Surface_area(0)
     compactness = Compactness(0)
     convexivity = Convexivity(0)
-    convex_hull = Convex_hull(0)
     eccentricity = Eccentricity(0)
     rectangularity = Rectangularity(0)
     diameter = Diameter(0)
     aabb_volume = AABB_volume(0)
+    ch_volume = CH_volume(0)
+    ch_surface_area = CH_surface_area(0)
+    ch_compactness = CH_compactness(0)
+    ch_convexivity = CH_convexivity(0)
+    ch_eccentricity = CH_eccentricity(0)
+    ch_rectangularity = CH_rectangularity(0)
+    ch_diameter = CH_diameter(0)
+    ch_aabb_volume = CH_AABB_volume(0)
 
     def __init__(self, id):
         self.pymeshlab_id = id
@@ -40,7 +48,7 @@ class Mesh():
             setattr(self, key, value)
 
     def get_features_dict(self):
-        return {feature: getattr(self, feature) for feature in feature_list}
+        return {feature: getattr(self, feature) for feature in feature_list + descriptor_list}
 
     def __str__(self):
         string = ""
