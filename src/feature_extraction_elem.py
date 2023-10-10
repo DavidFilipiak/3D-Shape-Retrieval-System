@@ -20,15 +20,49 @@ def stitch_holes(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
 #feature extraction chaining
 def get_elementary_features(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
+    print(meshSet.current_mesh().id())
     mesh.set_params(
         volume= get_volume(meshSet.current_mesh()),
         surface_area= get_surface_area(meshSet),
         compactness=get_compactness(meshSet.current_mesh(), meshSet),
-        convex_hull=get_convex_hull_volume(meshSet),
+        #convex_hull=get_convex_hull_volume(meshSet),
         eccentricity=get_eccentricity(meshSet.current_mesh()),
-        rectangularity=get_rectangularity(meshSet.current_mesh())
+        rectangularity=get_rectangularity(meshSet.current_mesh()),
+        diameter=get_diameter(meshSet.current_mesh()),
+        aabb_volume=get_AABB_volume(meshSet.current_mesh())
     )
+    #extract convex hull features
+    meshSet.generate_convex_hull()
+    print(f"convex hull id:{meshSet.current_mesh().id()}")
+    mesh.set_params(
+        ch_volume=get_volume(meshSet.current_mesh()),
+        ch_surface_area=get_surface_area(meshSet),
+        ch_compactness=get_compactness(meshSet.current_mesh(), meshSet),
+        ch_convexivity=get_convexivity(meshSet.current_mesh()),
+        ch_eccentricity=get_eccentricity(meshSet.current_mesh()),
+        ch_rectangularity=get_rectangularity(meshSet.current_mesh()),
+        ch_diameter=get_diameter(meshSet.current_mesh()),
+        ch_aabb_volume=get_AABB_volume(meshSet.current_mesh())
+    )
+    meshSet.delete_current_mesh()
     return mesh
+
+# def get_elementary_features_convex_hull(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
+#     print(meshSet.current_mesh().id())
+#     meshSet.generate_convex_hull()
+#     print(f"convex hull id:{meshSet.current_mesh().id()}")
+#     mesh.set_params(
+#         ch_volume= get_volume(meshSet.current_mesh()),
+#         ch_surface_area = get_surface_area(meshSet),
+#         ch_compactness = get_compactness(meshSet.current_mesh(), meshSet),
+#         ch_convexivity = get_convexivity(meshSet.current_mesh()),
+#         ch_eccentricity = get_eccentricity(meshSet.current_mesh()),
+#         ch_rectangularity = get_rectangularity(meshSet.current_mesh()),
+#         ch_diameter = get_diameter(meshSet.current_mesh()),
+#         ch_aabb_volume = get_AABB_volume(meshSet.current_mesh())
+#     )
+#     meshSet.delete_current_mesh()
+#     return mesh
 def get_surface_area(meshSet:pymeshlab.MeshSet):
     return meshSet.get_geometric_measures()['surface_area']
 

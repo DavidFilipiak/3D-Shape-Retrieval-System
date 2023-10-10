@@ -31,7 +31,7 @@ def add_mesh_to_system(filename=""):
     listbox_loaded_meshes.insert(END, mesh_name)
     num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
     mesh = Mesh(current_mesh.id())
-    #principal_components = get_principal_components(current_mesh.vertex_matrix())
+    principal_components = get_principal_components(current_mesh.vertex_matrix())
     mesh.set_params(
         num_vertices=current_mesh.vertex_number(),
         num_faces=current_mesh.face_number(),
@@ -43,11 +43,11 @@ def add_mesh_to_system(filename=""):
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
         bb_diagonal=current_mesh.bounding_box().diagonal(),
-        #barycenter=get_barycenter(current_mesh.vertex_matrix()),
-        #major_eigenvector=principal_components[0][1],
-        #median_eigenvector=principal_components[1][1],
-        #minor_eigenvector=principal_components[2][1],
-        #mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
+        barycenter=get_barycenter(current_mesh.vertex_matrix()),
+        major_eigenvector=principal_components[0][1],
+        median_eigenvector=principal_components[1][1],
+        minor_eigenvector=principal_components[2][1],
+        mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
     )
     for param in descriptor_list:
         setattr(mesh, param, 0)
@@ -157,7 +157,6 @@ def get_elem_features():
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
     print("Extracted elementary features")
 
-
 def batch_preprocess():
     global meshes
     output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
@@ -248,7 +247,7 @@ def analyze_feature(feature):
     #else:
         # round to 2 decimal places
     #    hist_x = np.round(hist_x, 2)
-    histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_view, analysis.max_view, mean=mean, std=std, xlabel=xlabel, ylabel=ylabel)
+    histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_value, analysis.max_value, mean=mean, std=std, xlabel= analysis.x_axis_label, ylabel=analysis.y_axis_label)
 
 
 def do_analyze_current_mesh(feature):
@@ -383,6 +382,7 @@ def main() -> None:
 
     extractmenu = Menu(menubar, tearoff=0)
     extractmenu.add_command(label="Extract feautures", command=get_elem_features)
+    #extractmenu.add_command(label="Extract feautures convex", command=get_elem_features_for_convex_hull)
     menubar.add_cascade(label="Extract", menu=extractmenu)
     root.config(menu=menubar)
 
