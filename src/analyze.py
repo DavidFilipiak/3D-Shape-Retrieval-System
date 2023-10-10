@@ -27,6 +27,9 @@ class Analysis:
     values = np.asarray([])
     all = np.asarray([])
 
+    x_axis_label = "Bin size"
+    y_axis_label = "Number of meshes"
+
     def __init__(self):
         pass
 
@@ -80,6 +83,8 @@ def analyze_feature_all(table: pd.DataFrame, min_view: float, max_view: float) -
     analysis.histogram = histogram
     analysis.values = values
     analysis.all = array
+    analysis.y_axis_label = table.columns[1]
+    analysis.x_axis_label = "Meshes"
     return analysis
 
 
