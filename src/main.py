@@ -268,6 +268,18 @@ def do_analyze_current_mesh(feature):
         draw_histogram(hist_x[:-1], hist_y, 0, MAX, xlabel='Face area', ylabel='Number of faces')
 
 
+def do_full_preprocess():
+    global meshes
+    p = Pipeline(ms)
+    p.add(translate_to_origin)
+    p.add(scale_to_unit_cube)
+    p.add(resample_mesh)
+    p.add(align)
+    p.add(flip)
+    normalized_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in normalized_meshes}
+    print("Preprocessed")
+
 def do_translate():
     global meshes
     p = Pipeline(ms)
@@ -346,6 +358,14 @@ def do_d1():
     meshes = {mesh.name: mesh for mesh in new_meshes}
     print("Computed D1 shape descriptor")
 
+def do_d2():
+    global meshes
+    p = Pipeline(ms)
+    p.add(d2)
+    new_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in new_meshes}
+    print("Computed D2 shape descriptor")
+
 def do_d3():
     global meshes
     p = Pipeline(ms)
@@ -353,6 +373,14 @@ def do_d3():
     new_meshes = p.run(list(meshes.values()))
     meshes = {mesh.name: mesh for mesh in new_meshes}
     print("Computed D3 shape descriptor")
+
+def do_d4():
+    global meshes
+    p = Pipeline(ms)
+    p.add(d4)
+    new_meshes = p.run(list(meshes.values()))
+    meshes = {mesh.name: mesh for mesh in new_meshes}
+    print("Computed D4 shape descriptor")
 
 def do_nothing():
     pass
@@ -407,7 +435,7 @@ def main() -> None:
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)
     preprocessmenu.add_command(label="Batch", command=batch_preprocess)
-    preprocessmenu.add_command(label="Full", command=do_nothing)
+    preprocessmenu.add_command(label="Full", command=do_full_preprocess)
     preprocessmenu.add_separator()
     preprocessmenu.add_command(label="Translate", command=do_translate)
     preprocessmenu.add_command(label="Scale", command=do_scale)
@@ -426,7 +454,9 @@ def main() -> None:
     #extractmenu.add_command(label="Extract feautures convex", command=get_elem_features_for_convex_hull)
     extractmenu.add_command(label="A3", command=do_a3)
     extractmenu.add_command(label="D1", command=do_d1)
+    extractmenu.add_command(label="D2", command=do_d2)
     extractmenu.add_command(label="D3", command=do_d3)
+    extractmenu.add_command(label="D4", command=do_d4)
     menubar.add_cascade(label="Extract", menu=extractmenu)
     root.config(menu=menubar)
 
