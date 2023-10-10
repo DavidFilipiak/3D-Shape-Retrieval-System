@@ -200,7 +200,11 @@ def analyze_feature(feature):
     xlabel = "Bin size"
     ylabel = "Number of meshes"
     mean, std = None, None
-    if feature == "barycenter":
+    if feature in descriptor_shape_list:
+        histograms = table[feature].values
+        draw_line_histogram(histograms, x_label="Bin size", y_label="Number of meshes")
+        return
+    elif feature == "barycenter":
         analysis = analyze_bary_distance_to_origin_all(table, "barycenter")
         xlabel = "Distance to origin"
         ylabel = "Frequency"
@@ -407,7 +411,8 @@ def main() -> None:
     filemenu.add_separator()
     filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
     filemenu.add_command(label="Save All Features (.csv)", command=lambda: save_all_meshes_csv(feature_list))
-    filemenu.add_command(label="Save All Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_list))
+    filemenu.add_command(label="Save All Elementary Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_list))
+    filemenu.add_command(label="Save All Advanced Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_shape_list))
     menubar.add_cascade(label="File", menu=filemenu)
     # Show menu
     showmenu = Menu(menubar, tearoff=0)

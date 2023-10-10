@@ -56,7 +56,7 @@ vector_feature_list = [
     "median_eigenvector",
     "minor_eigenvector",
     "mass_directions",
-    "a1",
+    "a3",
     "d1",
     "d2",
     "d3",
@@ -304,23 +304,23 @@ class CH_diameter(ScalarFeature):
 # more complicated feature descriptors
 class A3(VectorFeature):
     def __init__(self, value):
-        super().__init__("a3", 0, 1, value)
+        super().__init__("a3", 0, 10000, value)
 
 class D1(VectorFeature):
     def __init__(self, value):
-        super().__init__("d1", 0, 1, value)
+        super().__init__("d1", 0, 10000, value)
 
 class D2(VectorFeature):
     def __init__(self, value):
-        super().__init__("d2", 0, 1, value)
+        super().__init__("d2", 0, 10000, value)
 
 class D3(VectorFeature):
     def __init__(self, value):
-        super().__init__("d3", 0, 1, value)
+        super().__init__("d3", 0, 10000, value)
 
 class D4(VectorFeature):
     def __init__(self, value):
-        super().__init__("d4", 0, 1, value)
+        super().__init__("d4", 0, 10000, value)
 
 
 # this is just a dictionary of features that are displayed in the GUI and from which we grab the min and max values

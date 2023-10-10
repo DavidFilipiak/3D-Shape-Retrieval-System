@@ -122,3 +122,16 @@ def draw_grouped_histogram(arr_x, arrs_y, x_label="Bin size", y_label="Number of
     ax.legend(["x", "y", "z"], loc='upper left', ncols=3)
     plt.show()
     return fig
+
+def draw_line_histogram(histograms, x_label="", y_label=""):
+    plt.rcParams["figure.figsize"] = [13, 6]
+    plt.rcParams["figure.autolayout"] = True
+    fig, ax = plt.subplots()
+    for histogram in histograms:
+        arr_x, arr_y = histogram
+        color = np.random.rand(3,)
+        ax.plot(arr_x, arr_y, color=color)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.show()
+    return fig

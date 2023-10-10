@@ -104,11 +104,6 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
         num_faces=current_mesh.vertex_number(),
         num_vertices=current_mesh.face_number()
     )
-    # FACE AREA HISTOGRAM
-    face_areas = calculate_face_area(current_mesh.face_matrix(), current_mesh.vertex_matrix())
-    # filtered_list = [x for x in face_areas if x != 0]
-    hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
-    draw_histogram(hist_x[:-1], hist_y, 0, 0.002, xlabel='Face area', ylabel='Number of faces')
     return mesh
 
 

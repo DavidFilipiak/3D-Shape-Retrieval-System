@@ -54,7 +54,7 @@ class Mesh():
             setattr(self, key, value)
 
     def get_features_dict(self):
-        return {feature: getattr(self, feature) for feature in feature_list + descriptor_list}
+        return {feature: getattr(self, feature) for feature in feature_list + descriptor_list + descriptor_shape_list}
 
     def __str__(self):
         string = ""

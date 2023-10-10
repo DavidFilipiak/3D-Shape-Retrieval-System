@@ -6,10 +6,21 @@ from feature import vector_feature_list
 
 
 def string_to_np_array(string):
-    split = string.split(" ")
-    split[0] = split[0][1:]
-    split[-1] = split[-1][:-1]
-    return np.array([float(x) for x in split if x != ""])
+    try:
+        #vectors
+        split = string.split(" ")
+        split[0] = split[0][1:]
+        split[-1] = split[-1][:-1]
+        return np.array([float(x) for x in split if x != ""])
+    except ValueError as e:
+        #histograms
+        split = string.split("], [")
+        split[0] = split[0][2:]
+        split[-1] = split[-1][:-2]
+        return np.array([[float(x) for x in y.split(", ")] for y in split])
+
+def array_to_string(array):
+    return str(array.tolist())
 
 
 class Database:
@@ -50,6 +61,9 @@ class Database:
         return self.table
 
     def save_table(self, path: str) -> None:
+        for f in vector_feature_list:
+            if f in self.table.columns:
+                self.table[f] = self.table[f].apply(array_to_string)
         self.table.to_csv(path, index=False)
 
     def clear_table(self) ->None:

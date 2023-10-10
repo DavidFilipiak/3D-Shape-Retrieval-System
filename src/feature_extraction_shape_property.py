@@ -76,7 +76,7 @@ def d3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
     areas = []
     N = len(vertex_list)
-    n = 100000
+    n = min(100000, N ** 3)
     print(N, n)
     k = int(n ** (1/3))
     for i in range(0, k):
