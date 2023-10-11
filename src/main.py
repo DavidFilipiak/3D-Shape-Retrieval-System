@@ -151,7 +151,7 @@ def save_all_meshes_csv(feature_list_to_save) -> None:
     feature_dict = {feature: [] for feature in id_list + feature_list_to_save}
     for mesh in meshes.values():
         f = mesh.get_features_dict()
-        for feature in id_list + feature_list_to_save:
+        for feature in  list(set(id_list + feature_list_to_save)):
             feature_dict[feature].append(f[feature])
     df = pd.DataFrame(feature_dict)
     database.add_table(df, name=filename.split('/')[-1].split('.')[0])

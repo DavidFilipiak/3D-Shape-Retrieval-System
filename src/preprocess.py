@@ -50,8 +50,8 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
-        num_faces =current_mesh.vertex_number(),
-        num_vertices=current_mesh.face_number()
+        num_faces =current_mesh.face_number(),
+        num_vertices=current_mesh.vertex_number()
     )
 
     return mesh
