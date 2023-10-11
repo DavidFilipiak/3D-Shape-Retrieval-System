@@ -69,3 +69,9 @@ class Database:
 
     def clear_table(self) ->None:
         self.table = None
+
+    def update_csv_table(self, path: str, rows_to_add) -> None:
+        self.load_table(path)
+        self.table = pd.concat([self.table, rows_to_add], ignore_index=True)
+        self.save_table(path)
+        self.clear_table()

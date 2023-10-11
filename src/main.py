@@ -405,6 +405,40 @@ def do_d4():
     meshes = {mesh.name: mesh for mesh in new_meshes}
     print("Computed D4 shape descriptor")
 
+def do_batch_shape_descriptors():
+    global meshes
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors.csv"))
+    folder_name = filedialog.askdirectory(title="Mesh select",
+                                          initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+    batch_size = 10
+    batch_offset = 0
+    pipeline = Pipeline(ms)
+    pipeline.add(a3)
+    pipeline.add(d1)
+    pipeline.add(d2)
+    pipeline.add(d3)
+    pipeline.add(d4)
+
+    file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+    while file_count == batch_size:
+        batch_offset += batch_size
+        pipeline.run(list(meshes.values()), verbose=True)
+        rows_to_add = {feature: [] for feature in id_list + descriptor_shape_list}
+        for mesh in meshes.values():
+            f = mesh.get_features_dict()
+            for feature in  list(set(id_list + descriptor_shape_list)):
+                rows_to_add[feature].append(f[feature])
+        df = pd.DataFrame(rows_to_add)
+        database.update_csv_table(output_file, df)
+
+        clear_all_meshes_obj()
+
+        if batch_offset == -1:
+            break
+
+        file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+        file_count = file_count - (batch_size * (batch_offset // batch_size))
+
 def do_nothing():
     pass
 
@@ -480,6 +514,8 @@ def main() -> None:
     extractmenu = Menu(menubar, tearoff=0)
     extractmenu.add_command(label="Extract feautures", command=get_elem_features)
     #extractmenu.add_command(label="Extract feautures convex", command=get_elem_features_for_convex_hull)
+    extractmenu.add_separator()
+    extractmenu.add_command(label="Batch Shape Descriptors", command=do_batch_shape_descriptors)
     extractmenu.add_command(label="A3", command=do_a3)
     extractmenu.add_command(label="D1", command=do_d1)
     extractmenu.add_command(label="D2", command=do_d2)
