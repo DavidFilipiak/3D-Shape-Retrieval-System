@@ -93,6 +93,21 @@ def load_files_recursively(topdir, extension, limit=-1, offset=0, count=0) -> in
         count = load_files_recursively(os.path.join(root, _dir), extension, limit, offset, count)
     return count
 
+#When loading big directories, do it in batches
+# def load_all_meshes_obj() -> None:
+#     folder_name = filedialog.askdirectory(title="Mesh select",
+#                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+#     batch_size = 20
+#     batch_offset = 0
+#     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+#     while file_count == batch_size:
+#         batch_offset += batch_size
+#         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+#         file_count = file_count - (batch_size * (batch_offset // batch_size))
+#     if count != len(ms):
+#         raise Exception(f"A problem while loading meshes.")
+#     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+
 
 def load_all_meshes_obj() -> None:
     LIMIT = -1
@@ -101,8 +116,6 @@ def load_all_meshes_obj() -> None:
     if count != len(ms):
         raise Exception(f"A problem while loading meshes.")
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
-
-
 def load_all_meshes_csv() -> None:
     global current_csv_label
     filename = filedialog.askopenfilename(title="CSV select", initialdir=os.path.abspath(os.path.join(current_dir, "csv_files")), filetypes=[('CSV files', '*.csv')])
