@@ -33,11 +33,12 @@ class Database:
             new_table = self.new_table(path=os.path.join(folder, table))
             self.add_table(new_table)
 
-    def load_table(self, path: str) -> None:
+    def load_table(self, path: str, name_blacklist=[]) -> None:
         new_table = self.new_table(path=path)
         for f in vector_feature_list:
             if f in new_table.columns:
                 new_table[f] = new_table[f].apply(string_to_np_array)
+        new_table = new_table[~new_table['name'].isin(name_blacklist)]
         self.add_table(new_table, name=os.path.basename(path))
 
     def add_table(self, table: pd.DataFrame, name="") -> None:

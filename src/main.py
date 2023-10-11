@@ -24,6 +24,7 @@ database = None
 listbox_loaded_meshes, label_loaded_meshes, current_mesh_label, current_csv_label = None, None, None, None
 current_dir = os.getcwd()
 curr_mesh = None
+blacklist = []
 
 
 def add_mesh_to_system(filename=""):
@@ -85,6 +86,10 @@ def load_files_recursively(topdir, extension, limit=-1, offset=0, count=0) -> in
                 count += 1
                 continue
             new_path = os.path.join(root, file).replace("\\", "/")
+            parts = new_path.split("/")
+            joined = "/".join(parts[-2:])
+            if joined in blacklist:
+                continue
             ms.load_new_mesh(new_path)
             add_mesh_to_system(new_path)
             count += 1
@@ -116,10 +121,11 @@ def load_all_meshes_obj() -> None:
     if count != len(ms):
         raise Exception(f"A problem while loading meshes.")
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+
 def load_all_meshes_csv() -> None:
     global current_csv_label
     filename = filedialog.askopenfilename(title="CSV select", initialdir=os.path.abspath(os.path.join(current_dir, "csv_files")), filetypes=[('CSV files', '*.csv')])
-    database.load_table(filename)
+    database.load_table(filename, name_blacklist=blacklist)
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
 def clear_all_meshes_obj() -> None:
@@ -403,10 +409,14 @@ def do_nothing():
     pass
 
 def main() -> None:
-    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir
     filename = ''
     ms = pymeshlab.MeshSet()
     database = Database()
+
+    with open(os.path.join(current_dir, '..', 'excluded_files', 'blacklist.txt'), 'r') as f:
+        for line in f.readlines():
+            blacklist.append(line.strip())
 
     root = Tk()
     root.title("3D Shape Retrieval")
