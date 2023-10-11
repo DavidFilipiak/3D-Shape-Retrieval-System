@@ -10,7 +10,7 @@ def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
     angles = []
     N = len(vertex_list)
-    n = 100000
+    n = min(100000, N ** 3)
     print(N, n)
     k = int(n ** (1/3))
     for i in range(0, k):
@@ -53,7 +53,7 @@ def d2(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
     dists = []
     N = len(vertex_list)
-    n = 100000
+    n = min(100000, N ** 2)
     k = int(n ** (1/2))
     for i in range(0, k):
         v1 = random.randint(0, N - 1)
@@ -105,7 +105,7 @@ def d4(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
     volumes = []
     N = len(vertex_list)
-    n = 100000
+    n = min(100000, N ** 4)
     print(N, n)
     k = int(n ** (1/4))
     for i in range(0, k):
