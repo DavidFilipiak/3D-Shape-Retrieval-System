@@ -13,7 +13,7 @@ class Pipeline:
         self.pipeline.append(modifier)
         self.func_args[modifier] = kwargs
 
-    def run(self, mesh: Mesh | list[Mesh], verbose=False) -> Mesh | list[Mesh]:
+    def run(self, mesh: Mesh | list[Mesh], verbose=True) -> Mesh | list[Mesh]:
         if isinstance(mesh, Mesh):
             self.ms.set_current_mesh(mesh.pymeshlab_id)
             for modifier in self.pipeline:

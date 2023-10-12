@@ -5,6 +5,9 @@ import numpy as np
 from mesh import Mesh
 import random
 
+D1_NUM_BINS = 50
+NUM_BINS = 100
+
 # angle between three random points
 def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
@@ -32,7 +35,7 @@ def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
                     continue
                 angles.append(np.arccos(dot(vertex1, vertex2) / (norm1 * norm2)))
 
-    hist_y, hist_x = np.histogram(angles, math.ceil(math.sqrt(len(angles))))
+    hist_y, hist_x = np.histogram(angles, NUM_BINS)
     hist_x = hist_x[:-1]
     mesh.set_params(
         a3 = np.array([hist_x, hist_y])
@@ -44,8 +47,7 @@ def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 def d1(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     vertex_list = meshSet.current_mesh().vertex_matrix()
     dists = np.linalg.norm(vertex_list, axis=1)
-    num_bins = min(200.0, math.ceil(math.sqrt(len(dists))))
-    hist_y, hist_x = np.histogram(dists, num_bins)
+    hist_y, hist_x = np.histogram(dists, D1_NUM_BINS)
     hist_x = hist_x[:-1]
     mesh.set_params(
         d1 = np.array([hist_x, hist_y])
@@ -68,7 +70,7 @@ def d2(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
                 continue
             dists.append(np.linalg.norm(vertex_list[v1] - vertex_list[v2]))
 
-    hist_y, hist_x = np.histogram(dists, math.ceil(math.sqrt(len(dists))))
+    hist_y, hist_x = np.histogram(dists, NUM_BINS)
     hist_x = hist_x[:-1]
     mesh.set_params(
         d2 = np.array([hist_x, hist_y])
@@ -96,7 +98,7 @@ def d3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
                 _v1, _v2, _v3 = vertex_list[v1], vertex_list[v2], vertex_list[v3]
                 areas.append(np.linalg.norm(np.cross(_v2 - _v1, _v3 - _v1)) / 2)
 
-    hist_y, hist_x = np.histogram(areas, math.ceil(math.sqrt(len(areas))))
+    hist_y, hist_x = np.histogram(areas, NUM_BINS)
     hist_x = hist_x[:-1]
     mesh.set_params(
         d3 = np.array([hist_x, hist_y])
@@ -128,7 +130,7 @@ def d4(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
                     _v1, _v2, _v3, _v4 = vertex_list[v1], vertex_list[v2], vertex_list[v3], vertex_list[v4]
                     volumes.append(abs(dot(_v4 - _v1, np.cross(_v2 - _v1, _v3 - _v1))) / 6)
 
-    hist_y, hist_x = np.histogram(volumes, math.ceil(math.sqrt(len(volumes))))
+    hist_y, hist_x = np.histogram(volumes, NUM_BINS)
     hist_x = hist_x[:-1]
     mesh.set_params(
         d4 = np.array([hist_x, hist_y])
