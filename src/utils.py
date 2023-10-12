@@ -123,14 +123,17 @@ def draw_grouped_histogram(arr_x, arrs_y, x_label="Bin size", y_label="Number of
     plt.show()
     return fig
 
-def draw_line_histogram(histograms, x_label="", y_label=""):
+def draw_line_histograms(class_histograms, x_label="", y_label=""):
     plt.rcParams["figure.figsize"] = [13, 6]
     plt.rcParams["figure.autolayout"] = True
-    fig, ax = plt.subplots()
-    for histogram in histograms:
-        arr_x, arr_y = histogram
-        color = np.random.rand(3,)
-        ax.plot(arr_x, arr_y, color=color)
+    num_plots = len(class_histograms)
+    fig = plt.figure(1)
+    for i, histograms in enumerate(class_histograms):
+        ax = fig.add_subplot(num_plots, 1, i + 1)
+        for histogram in histograms:
+            arr_x, arr_y = histogram[0], histogram[1]
+            color = np.random.rand(3, )
+            ax.plot(arr_x, arr_y, color=color)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.show()

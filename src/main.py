@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+from tkinter import simpledialog
 import os
 import pymeshlab
 import pandas as pd
@@ -19,6 +20,7 @@ from feature import *
 from analyze import *
 
 # GLOBAL VARIABLES
+root = Tk()
 ms = None
 database = None
 listbox_loaded_meshes, label_loaded_meshes, current_mesh_label, current_csv_label = None, None, None, None
@@ -211,6 +213,38 @@ def batch_preprocess():
         file_count = file_count - (batch_size * (batch_offset // batch_size))
 
 
+def open_class_select_window(options):
+    selected_options = []
+
+    # Create a new dialog window
+    newWindow = Toplevel(root)
+    newWindow.geometry("250x500")
+    newWindow.title("Select classes")
+
+    # Create checkboxes for each option
+    checkboxes = []
+    for option in options:
+        var = BooleanVar()
+        checkbox = Checkbutton(newWindow, text=option, variable=var)
+        checkboxes.append((option, var))
+        checkbox.pack()
+
+    def get_selected_options():
+        selected_options.clear()
+        for option, var in checkboxes:
+            if var.get():
+                selected_options.append(option)
+        newWindow.destroy()
+
+    # Create an "Accept" button
+    accept_button = Button(newWindow, text="Accept", command=get_selected_options)
+    accept_button.pack()
+
+    # Wait for the dialog to close
+    newWindow.wait_window()
+
+    return selected_options
+
 
 def analyze_feature(feature):
     table = database.get_table()
@@ -220,8 +254,15 @@ def analyze_feature(feature):
     ylabel = "Number of meshes"
     mean, std = None, None
     if feature in descriptor_shape_list:
-        histograms = table[feature].values
-        draw_line_histogram(histograms, x_label="Bin size", y_label="Number of meshes")
+        classes = table["class_name"].unique()
+        selected_classes = open_class_select_window(classes)
+        #t = table[table["class_name"].isin(selected_classes)]
+        class_histograms = []
+        for class_name in selected_classes:
+            histograms = table[table["class_name"] == class_name][feature].values
+            class_histograms.append((class_name, histograms))
+        print(class_histograms)
+        draw_line_histograms(class_histograms, x_label="Bin size", y_label="Number of meshes")
         return
     elif feature == "barycenter":
         analysis = analyze_bary_distance_to_origin_all(table, "barycenter")
@@ -407,7 +448,7 @@ def do_d4():
 
 def do_batch_shape_descriptors():
     global meshes
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors.csv"))
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors2.csv"))
     folder_name = filedialog.askdirectory(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 10
@@ -443,7 +484,7 @@ def do_nothing():
     pass
 
 def main() -> None:
-    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir
+    global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir, root, blacklist
     filename = ''
     ms = pymeshlab.MeshSet()
     database = Database()
@@ -451,8 +492,8 @@ def main() -> None:
     with open(os.path.join(current_dir, '..', 'excluded_files', 'blacklist.txt'), 'r') as f:
         for line in f.readlines():
             blacklist.append(line.strip())
+    blacklist = []
 
-    root = Tk()
     root.title("3D Shape Retrieval")
     root.geometry("500x500")
 

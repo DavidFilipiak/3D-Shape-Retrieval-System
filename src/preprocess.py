@@ -120,10 +120,7 @@ def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
-        bb_dim_x=current_mesh.bounding_box().dim_x(),
-        bb_dim_y=current_mesh.bounding_box().dim_y(),
-        bb_dim_z=current_mesh.bounding_box().dim_z(),
-        bb_diagonal=current_mesh.bounding_box().diagonal(),
+        barycenter=get_barycenter(current_mesh.vertex_matrix())
     )
     return mesh
 
@@ -147,6 +144,7 @@ def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
         bb_dim_x=current_mesh.bounding_box().dim_x(),
         bb_dim_y=current_mesh.bounding_box().dim_y(),
         bb_dim_z=current_mesh.bounding_box().dim_z(),
+        bb_diagonal=current_mesh.bounding_box().diagonal(),
     )
     return mesh
 

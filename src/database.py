@@ -6,6 +6,7 @@ from feature import vector_feature_list
 
 
 def string_to_np_array(string):
+    string = string.replace(",", "")
     try:
         #vectors
         split = string.split(" ")
@@ -14,10 +15,10 @@ def string_to_np_array(string):
         return np.array([float(x) for x in split if x != ""])
     except ValueError as e:
         #histograms
-        split = string.split("], [")
+        split = string.split("] [")
         split[0] = split[0][2:]
         split[-1] = split[-1][:-2]
-        return np.array([[float(x) for x in y.split(", ")] for y in split])
+        return np.array([[float(x) for x in y.split(" ")] for y in split])
 
 def array_to_string(array):
     return str(array.tolist())
