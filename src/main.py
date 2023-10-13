@@ -248,7 +248,6 @@ def open_class_select_window(options):
 
 def analyze_feature(feature):
     table = database.get_table()
-
     analysis = None
     xlabel = "Bin size"
     ylabel = "Number of meshes"
@@ -260,9 +259,9 @@ def analyze_feature(feature):
         class_histograms = []
         for class_name in selected_classes:
             histograms = table[table["class_name"] == class_name][feature].values
+            print(histograms[0].shape, histograms[0])
             class_histograms.append((class_name, histograms))
-        print(class_histograms)
-        draw_line_histograms(class_histograms, x_label="Bin size", y_label="Number of meshes")
+        draw_line_histograms(class_histograms, x_label=feature, y_label="")
         return
     elif feature == "barycenter":
         analysis = analyze_bary_distance_to_origin_all(table, "barycenter")

@@ -7,18 +7,20 @@ from feature import vector_feature_list
 
 def string_to_np_array(string):
     string = string.replace(",", "")
-    try:
+    split = string.split("] [")
+    if len(split) == 1:
         #vectors
         split = string.split(" ")
         split[0] = split[0][1:]
         split[-1] = split[-1][:-1]
-        return np.array([float(x) for x in split if x != ""])
-    except ValueError as e:
+        array = np.array([float(x) for x in split if x != ""])
+        return array
+    else:
         #histograms
-        split = string.split("] [")
         split[0] = split[0][2:]
         split[-1] = split[-1][:-2]
-        return np.array([[float(x) for x in y.split(" ")] for y in split])
+        array = np.array([[float(x) for x in y.split(" ")] for y in split])
+        return array
 
 def array_to_string(array):
     return str(array.tolist())

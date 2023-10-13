@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import random
 
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
@@ -123,18 +124,45 @@ def draw_grouped_histogram(arr_x, arrs_y, x_label="Bin size", y_label="Number of
     plt.show()
     return fig
 
-def draw_line_histograms(class_histograms, x_label="", y_label=""):
+def draw_line_histograms(class_histograms, x_label="", y_label="", line_limit=15):
     plt.rcParams["figure.figsize"] = [13, 6]
     plt.rcParams["figure.autolayout"] = True
     num_plots = len(class_histograms)
+    square = reshape_to_square_matrix(np.arange(num_plots))
     fig = plt.figure(1)
-    for i, histograms in enumerate(class_histograms):
-        ax = fig.add_subplot(num_plots, 1, i + 1)
-        for histogram in histograms:
-            arr_x, arr_y = histogram[0], histogram[1]
-            color = np.random.rand(3, )
-            ax.plot(arr_x, arr_y, color=color)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    plt.title(x_label)
+
+    for i in range(square.shape[0]):
+        for j in range(square.shape[1]):
+            if square[i][j] > -1:
+                index = int(square[i][j])
+                ax = fig.add_subplot(square.shape[0], square.shape[1], index + 1)
+                class_name, histograms = class_histograms[index]
+                random.shuffle(histograms)
+                for count in range(min(line_limit, len(histograms))):
+                    histogram = histograms[count]
+                    arr_x, arr_y = histogram[0], histogram[1]
+                    color = np.random.rand(3, )
+                    ax.plot(arr_x, arr_y, color=color)
+                    plt.xlabel(class_name)
+
     plt.show()
     return fig
+
+
+def reshape_to_square_matrix(arr):
+    # Calculate the size of the square matrix
+    size = int(np.ceil(np.sqrt(len(arr))))
+
+    # Calculate the number of NaN values needed to fill the matrix
+    num_nan = size * size - len(arr)
+
+    # Create a new matrix filled with NaN values
+    matrix = np.empty((size, size))
+    matrix[:] = -1
+
+    # Fill the matrix with values from the original array
+    for i in range(len(arr)):
+        matrix[i // size][i % size] = arr[i]
+
+    return matrix

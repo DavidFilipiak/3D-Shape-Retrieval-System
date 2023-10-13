@@ -1,0 +1,2 @@
+name,class_name,num_vertices,num_faces,num_triangles,num_quads,bb_dim_x,bb_dim_y,bb_dim_z,bb_diagonal,barycenter,major_eigenvector,median_eigenvector,minor_eigenvector,mass_directions
+Car/D00541.obj,Car,10000,17756,17756,0,0.432043,0.469869,0.996255,1.183199922259548,"[0.002, -0.001, 0.006]","[0.9999999999999998, 7.611849645303824e-09, 2.4912710691121885e-08]","[7.611850400067092e-09, -0.9999999999999996, -3.029631412410084e-08]","[2.491271046051075e-08, 3.0296314480402296e-08, -0.9999999999999993]","[1, 1, 1]"
