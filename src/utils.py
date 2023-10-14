@@ -66,7 +66,7 @@ def calculate_volume(vertex_matrix, face_matrix):
     for face_indices in face_matrix:
 
         v0, v1, v2 = vertex_matrix[face_indices]
-        volume = abs(dot(v0, np.cross(v1, v2))) / 6
+        volume = abs(dot(v0, np.cross(v1,v2)))/ 6
         overall_volume += volume
     return overall_volume
 

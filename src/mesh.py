@@ -35,7 +35,6 @@ class Mesh():
     ch_volume = CH_volume(0)
     ch_surface_area = CH_surface_area(0)
     ch_compactness = CH_compactness(0)
-    ch_convexivity = CH_convexivity(0)
     ch_eccentricity = CH_eccentricity(0)
     ch_rectangularity = CH_rectangularity(0)
     ch_diameter = CH_diameter(0)

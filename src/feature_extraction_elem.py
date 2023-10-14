@@ -12,7 +12,6 @@ def get_elementary_features(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
         volume= get_volume(meshSet.current_mesh()),
         surface_area= get_surface_area(meshSet),
         compactness=get_compactness(meshSet.current_mesh(), meshSet),
-        convexivity=get_convexivity(meshSet.current_mesh()),
         eccentricity=get_eccentricity(meshSet.current_mesh()),
         rectangularity=get_rectangularity(meshSet.current_mesh()),
         diameter=get_diameter(meshSet.current_mesh()),
@@ -20,17 +19,21 @@ def get_elementary_features(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
     )
     #extract convex hull features
     meshSet.generate_convex_hull()
-   # meshSet.save_current_mesh("/Users/georgioschristopoulos/PycharmProjects/3D-Shape-Retrieval-System/convex_hull.obj")
+    #meshSet.save_current_mesh("/Users/georgioschristopoulos/PycharmProjects/3D-Shape-Retrieval-System/convex_hull.obj")
     print(f"convex hull id:{meshSet.current_mesh().id()}")
     mesh.set_params(
         ch_volume=get_volume(meshSet.current_mesh()),
         ch_surface_area=get_surface_area(meshSet),
         ch_compactness=get_compactness(meshSet.current_mesh(), meshSet),
-        ch_convexivity=get_convexivity(meshSet.current_mesh()),
         ch_eccentricity=get_eccentricity(meshSet.current_mesh()),
         ch_rectangularity=get_rectangularity(meshSet.current_mesh()),
         ch_diameter=get_diameter(meshSet.current_mesh()),
         ch_aabb_volume=get_AABB_volume(meshSet.current_mesh())
+
+    )
+    convexivity = mesh.volume/ mesh.ch_volume
+    mesh.set_params(
+        convexivity=convexivity
     )
     meshSet.delete_current_mesh()
     return mesh
@@ -42,7 +45,8 @@ def get_volume(mesh):
     return calculate_volume(mesh.vertex_matrix(), mesh.face_matrix())
 
 def get_compactness(mesh, meshSet:pymeshlab.MeshSet):
-    return (36 * math.pi * get_volume(mesh) ** 2) ** (1 / 3) / get_surface_area(meshSet)
+    return get_surface_area(meshSet) ** 3 / (36 * math.pi * get_volume(mesh) ** 2)
+    #(36 * math.pi * get_volume(mesh) ** 2) ** (1 / 3) / get_surface_area(meshSet)
 
 def get_AABB_volume(mesh):
     return mesh.bounding_box().dim_x() * mesh.bounding_box().dim_y() * mesh.bounding_box().dim_z()
@@ -55,11 +59,11 @@ def get_eccentricity(mesh):
     return math.sqrt(1 - (scale_min / scale_long) ** 2)
 
 def get_rectangularity(mesh):
-    return get_AABB_volume(mesh) / get_volume(mesh)
+    return get_volume(mesh)/get_AABB_volume(mesh)
 
 
 def get_convexivity(mesh):
-    return get_volume(mesh) / get_AABB_volume(mesh)
+    return mesh.volume / mesh.ch_volume
 
 def get_diameter(mesh):
     distances = np.linalg.norm(mesh.vertex_matrix() - mesh.vertex_matrix().mean(axis=0), axis=1)
