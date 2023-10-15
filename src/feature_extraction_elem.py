@@ -8,7 +8,6 @@ from scipy.spatial import distance
 #feature extraction chaining
 def get_elementary_features(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
     print(meshSet.current_mesh().id())
-    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
     mesh.set_params(
         volume= get_volume(meshSet.current_mesh()),
         surface_area= get_surface_area(meshSet.current_mesh()),
@@ -49,7 +48,6 @@ def get_volume(mesh):
 def get_compactness(mesh, meshSet:pymeshlab.MeshSet):
     S = get_surface_area(meshSet.current_mesh())
     return S ** 3 / (36 * math.pi * get_volume(mesh) ** 2)
-    #(36 * math.pi * get_volume(mesh) ** 2) ** (1 / 3) / get_surface_area(meshSet)
 
 def get_AABB_volume(mesh):
     return mesh.bounding_box().dim_x() * mesh.bounding_box().dim_y() * mesh.bounding_box().dim_z()
@@ -58,7 +56,7 @@ def get_eccentricity(mesh):
     principal_components = get_principal_components(mesh.vertex_matrix())
     major_eigenvalue = principal_components[0][0]
     minor_eigenvalue = principal_components[2][0]
-    eccentricity = major_eigenvalue / minor_eigenvalue
+    eccentricity = abs(major_eigenvalue) / abs(minor_eigenvalue)
     return eccentricity
 
 def get_rectangularity(mesh):
