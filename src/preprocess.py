@@ -21,6 +21,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
+    meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
     while (meshSet.current_mesh().vertex_number() <= TARGET):
         iter += 1
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
@@ -109,7 +110,7 @@ def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_f
 
 def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
-    # meshSet.compute_matrix_from_translation(traslmethod='Center on Layer BBox', alllayers=True)
+    meshSet.compute_matrix_from_translation(traslmethod='Center on Layer BBox', alllayers=True)
 
     barycenter = get_barycenter(meshSet.current_mesh().vertex_matrix())
     transform_matrix = np.eye(4)
@@ -127,7 +128,7 @@ def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
 def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
-    # meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
+    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
 
     bb = meshSet.current_mesh().bounding_box()
     min_point = bb.min()

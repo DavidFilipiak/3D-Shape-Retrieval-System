@@ -38,8 +38,7 @@ descriptor_list = [
     "ch_compactness",
     "ch_rectangularity",
     "ch_diameter",
-    "ch_aabb_volume",
-    "ch_convexivity",
+    "ch_aabb_volume"
 ]
 
 descriptor_shape_list = [
@@ -280,11 +279,6 @@ class CH_compactness(ScalarFeature):
         super().__init__("ch_compactness", 0, 1, value)
 
 
-class CH_convexivity(ScalarFeature):
-    def __init__(self, value):
-        super().__init__("ch_convexivity", 0, 1, value)
-
-
 class CH_surface_area(ScalarFeature):
     def __init__(self, value):
         super().__init__("ch_surface_area", 0, 100000, value)
@@ -355,8 +349,7 @@ show_descriptor_dict = {
     "ch_compactness": CH_compactness(0),
     "ch_rectangularity": CH_rectangularity(0),
     "ch_diameter": CH_diameter(0),
-    "ch_aabb_volume": CH_AABB_volume(0),
-    "ch_convexivity": CH_convexivity(0)
+    "ch_aabb_volume": CH_AABB_volume(0)
 }
 
 show_descriptor_shape_dict = {

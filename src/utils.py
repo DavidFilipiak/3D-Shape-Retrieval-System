@@ -66,7 +66,7 @@ def calculate_volume(vertex_matrix, face_matrix):
     for face_indices in face_matrix:
 
         v0, v1, v2 = vertex_matrix[face_indices]
-        volume = abs(dot(v0, np.cross(v1, v2))) / 6
+        volume = abs(dot(v0, np.cross(v1,v2)))/ 6
         overall_volume += volume
     return overall_volume
 
@@ -131,6 +131,7 @@ def draw_line_histograms(class_histograms, x_label="", y_label="", line_limit=15
     square = reshape_to_square_matrix(np.arange(num_plots))
     fig = plt.figure(1)
     plt.title(x_label)
+    plt.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
 
     for i in range(square.shape[0]):
         for j in range(square.shape[1]):

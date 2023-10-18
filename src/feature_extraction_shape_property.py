@@ -37,11 +37,11 @@ def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     try:
         hist_y, hist_x = np.histogram(angles, NUM_BINS)
+        hist_x = hist_x[:-1]
     except Exception as e:
         with open("shape_desc_error.txt", "a") as f:
             f.write(f"{mesh.name}::a3::{e}\n\n")
         hist_y, hist_x = np.zeros(NUM_BINS), np.zeros(NUM_BINS)
-    hist_x = hist_x[:-1]
     mesh.set_params(
         a3 = np.array([hist_x, hist_y])
     )
@@ -77,11 +77,11 @@ def d2(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     try:
         hist_y, hist_x = np.histogram(dists, NUM_BINS)
+        hist_x = hist_x[:-1]
     except Exception as e:
         with open("shape_desc_error.txt", "a") as f:
             f.write(f"{mesh.name}::d2::{e}\n\n")
         hist_y, hist_x = np.zeros(NUM_BINS), np.zeros(NUM_BINS)
-    hist_x = hist_x[:-1]
     mesh.set_params(
         d2 = np.array([hist_x, hist_y])
     )
@@ -110,11 +110,11 @@ def d3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     try:
         hist_y, hist_x = np.histogram(areas, NUM_BINS)
+        hist_x = hist_x[:-1]
     except Exception as e:
         with open("shape_desc_error.txt", "a") as f:
             f.write(f"{mesh.name}::d3::{e}\n\n")
         hist_y, hist_x = np.zeros(NUM_BINS), np.zeros(NUM_BINS)
-    hist_x = hist_x[:-1]
     mesh.set_params(
         d3 = np.array([hist_x, hist_y])
     )
@@ -147,11 +147,11 @@ def d4(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
     try:
         hist_y, hist_x = np.histogram(volumes, NUM_BINS)
+        hist_x = hist_x[:-1]
     except Exception as e:
         with open("shape_desc_error.txt", "a") as f:
             f.write(f"{mesh.name}::d4::{e}\n\n")
         hist_y, hist_x = np.zeros(NUM_BINS), np.zeros(NUM_BINS)
-    hist_x = hist_x[:-1]
     mesh.set_params(
         d4 = np.array([hist_x, hist_y])
     )
