@@ -18,7 +18,7 @@ from utils import *
 from pipeline import Pipeline
 from feature import *
 from analyze import *
-from standardize import standardize_histogram_features, standardize_scalar_features
+
 
 # GLOBAL VARIABLES
 root = Tk()
@@ -102,28 +102,28 @@ def load_files_recursively(topdir, extension, limit=-1, offset=0, count=0) -> in
     return count
 
 #When loading big directories, do it in batches
-# def load_all_meshes_obj() -> None:
-#     folder_name = filedialog.askdirectory(title="Mesh select",
-#                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-#     batch_size = 20
-#     batch_offset = 0
-#     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
-#     while file_count == batch_size:
-#         batch_offset += batch_size
-#         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
-#         file_count = file_count - (batch_size * (batch_offset // batch_size))
-#     if count != len(ms):
-#         raise Exception(f"A problem while loading meshes.")
-#     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 
 def load_all_meshes_obj() -> None:
-    LIMIT = -1
-    folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
-    count = load_files_recursively(folder_name, ".obj", limit=LIMIT)
-    if count != len(ms):
-        raise Exception(f"A problem while loading meshes.")
+    folder_name = filedialog.askdirectory(title="Mesh select",
+                                          initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+    batch_size = 20
+    batch_offset = 0
+    file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+    while file_count == batch_size:
+        batch_offset += batch_size
+        file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
+        file_count = file_count - (batch_size * (batch_offset // batch_size))
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
+
+
+# def load_all_meshes_obj() -> None:
+#     LIMIT = -1
+#     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
+#     count = load_files_recursively(folder_name, ".obj", limit=LIMIT)
+#     if count != len(ms):
+#         raise Exception(f"A problem while loading meshes.")
+#     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
 
 def load_all_meshes_csv() -> None:
     global current_csv_label
@@ -183,6 +183,7 @@ def get_elem_features():
     meshes = {mesh.name: mesh for mesh in normalized_meshes}
     print("Extracted elementary features")
 
+
 def batch_preprocess():
     global meshes
     output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
@@ -190,9 +191,9 @@ def batch_preprocess():
     batch_size = 20
     batch_offset = 0
     pipeline = Pipeline(ms)
+    pipeline.add(resample_mesh)
     pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
-    pipeline.add(resample_mesh)
     pipeline.add(align)
     pipeline.add(flip)
 
@@ -219,18 +220,16 @@ def open_class_select_window(options):
 
     # Create a new dialog window
     newWindow = Toplevel(root)
-    newWindow.geometry("500x500")
+    newWindow.geometry("250x500")
     newWindow.title("Select classes")
 
     # Create checkboxes for each option
     checkboxes = []
-    rows = math.ceil(math.sqrt(len(options)))
-    cols = math.ceil(len(options) / rows)
-    for i, option in enumerate(options):
+    for option in options:
         var = BooleanVar()
         checkbox = Checkbutton(newWindow, text=option, variable=var)
         checkboxes.append((option, var))
-        checkbox.grid(row=i // cols, column=i % cols, sticky=W)
+        checkbox.pack()
 
     def get_selected_options():
         selected_options.clear()
@@ -241,7 +240,7 @@ def open_class_select_window(options):
 
     # Create an "Accept" button
     accept_button = Button(newWindow, text="Accept", command=get_selected_options)
-    accept_button.grid(row=rows+2, column=0, sticky=W)
+    accept_button.pack()
 
     # Wait for the dialog to close
     newWindow.wait_window()
@@ -337,6 +336,7 @@ def do_analyze_current_mesh(feature):
 def do_full_preprocess():
     global meshes
     p = Pipeline(ms)
+
     p.add(translate_to_origin)
     p.add(scale_to_unit_cube)
     p.add(resample_mesh)
@@ -393,6 +393,10 @@ def do_flip():
 
 def do_stitch_holes():
     global meshes
+
+
+    # with open("meshes_our_class.pkl", "rb") as file:
+    #     meshes = pickle.load(file)
     p = Pipeline(ms)
     p.add(stitch_holes)
     aligned_meshes = p.run(list(meshes.values()))
@@ -450,14 +454,12 @@ def do_d4():
 
 def do_batch_shape_descriptors():
     global meshes
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_final.csv"))
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors2.csv"))
     folder_name = filedialog.askdirectory(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 10
-    batch_offset = 470
+    batch_offset = 0
     pipeline = Pipeline(ms)
-    pipeline.add(translate_to_origin)
-    pipeline.add(scale_to_unit_cube)
     pipeline.add(a3)
     pipeline.add(d1)
     pipeline.add(d2)
@@ -465,7 +467,6 @@ def do_batch_shape_descriptors():
     pipeline.add(d4)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
-    file_count = file_count - (batch_size * (batch_offset // batch_size))
     while file_count == batch_size:
         batch_offset += batch_size
         pipeline.run(list(meshes.values()), verbose=True)
@@ -485,28 +486,10 @@ def do_batch_shape_descriptors():
         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
         file_count = file_count - (batch_size * (batch_offset // batch_size))
 
-def do_standardize_scalar():
-    table = database.get_table()
-    new_table = standardize_scalar_features(table, descriptor_list)
-    new_name = "".join(database.table_name.split(".")[:-1]) + "_standardized.csv"
-    database.add_table(new_table, name=new_name)
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", new_name))
-    database.save_table(output_file)
-    print("Standardized scalar features. Saved in a new .csv file.")
-
-
-def do_standardize_histogram():
-    table = database.get_table()
-    new_table = standardize_histogram_features(table, descriptor_shape_list)
-    new_name = "".join(database.table_name.split(".")[:-1]) + "_standardized.csv"
-    database.add_table(new_table, name=new_name)
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", new_name))
-    database.save_table(output_file)
-    print("Standardized histogram features. Saved in a new .csv file.")
-
 def do_nothing():
     pass
-
+def do_query():
+    pass
 def main() -> None:
     global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir, root, blacklist
     filename = ''
@@ -587,11 +570,6 @@ def main() -> None:
     extractmenu.add_command(label="D3", command=do_d3)
     extractmenu.add_command(label="D4", command=do_d4)
     menubar.add_cascade(label="Extract", menu=extractmenu)
-    # Standardize menu
-    standardizemenu = Menu(menubar, tearoff=0)
-    standardizemenu.add_command(label="Scalar features", command=do_standardize_scalar)
-    standardizemenu.add_command(label="Histogram features", command=do_standardize_histogram)
-    menubar.add_cascade(label="Standardize", menu=standardizemenu)
     root.config(menu=menubar)
 
     current_mesh_label = Label(root, text="Current mesh")
@@ -603,6 +581,12 @@ def main() -> None:
     label_loaded_meshes.grid(row=1, column=0)
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
+
+    inputtxt = Text(root, height=10, width=25,bg="light yellow")
+    inputtxt.grid(row=3, column=0)
+    Display = Button(root, height=2, width=20,text="Show",command= do_query)
+    Display.grid(row=4, column=0)
+
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)
     def callback(event):
