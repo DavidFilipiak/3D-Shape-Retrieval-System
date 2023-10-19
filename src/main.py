@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+import open3d as o3d
 from tkinter import simpledialog
 import os
 import pymeshlab
@@ -14,6 +15,7 @@ from preprocess import *
 from postprocess import *
 from src.feature_extraction_elem import get_elementary_features
 from feature_extraction_shape_property import *
+from standardize import standardize_histogram_features, standardize_scalar_features
 from utils import *
 from pipeline import Pipeline
 from feature import *
@@ -69,6 +71,16 @@ def browse_button() -> None:
     global curr_mesh
     db_dir = os.path.abspath(os.path.join(current_dir, "..", "db"))
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=db_dir, filetypes=[('Mesh files', '*.obj')])
+
+    #mesh = o3d.io.read_triangle_mesh(filename)
+    # Calculate face normals
+    #mesh.compute_vertex_normals()
+    #lines = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+    # Set the color of the lines (e.g., green)
+    #lines.paint_uniform_color([0, 1, 0])
+    # Visualize the mesh with face normals
+    #o3d.visualization.draw_geometries([mesh])
+
     ms.load_new_mesh(filename)
     add_mesh_to_system(filename)
     label_loaded_meshes.config(text=f"Loaded meshes ({len(ms)})")
@@ -454,12 +466,14 @@ def do_d4():
 
 def do_batch_shape_descriptors():
     global meshes
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins.csv"))
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins_v2.csv"))
     folder_name = filedialog.askdirectory(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 10
     batch_offset = 0
     pipeline = Pipeline(ms)
+    pipeline.add(translate_to_origin)
+    pipeline.add(scale_to_unit_cube)
     pipeline.add(a3)
     pipeline.add(d1)
     pipeline.add(d2)
@@ -480,11 +494,29 @@ def do_batch_shape_descriptors():
 
         clear_all_meshes_obj()
 
-        if batch_offset == -1:
+        if batch_offset >= 470:
             break
 
         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
         file_count = file_count - (batch_size * (batch_offset // batch_size))
+
+def do_standardize_scalar_feature():
+    table = database.get_table()
+    new_table = standardize_scalar_features(table, descriptor_list)
+    new_table_name = database.table_name.split('.')[0] + "_standardized.csv"
+    database.add_table(new_table, new_table_name)
+    new_path = os.path.join(current_dir, "csv_files", new_table_name)
+    database.save_table(new_path)
+    current_csv_label.config(text=f"Current CSV: {database.table_name}")
+
+def do_standardize_histogram_feature():
+    table = database.get_table()
+    new_table = standardize_histogram_features(table, descriptor_shape_list)
+    new_table_name = database.table_name.split('.')[0] + "_standardized.csv"
+    database.add_table(new_table, new_table_name)
+    new_path = os.path.join(current_dir, "csv_files", new_table_name)
+    database.save_table(new_path)
+    current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
 def do_nothing():
     pass
@@ -570,6 +602,11 @@ def main() -> None:
     extractmenu.add_command(label="D3", command=do_d3)
     extractmenu.add_command(label="D4", command=do_d4)
     menubar.add_cascade(label="Extract", menu=extractmenu)
+    standardizemenu = Menu(menubar, tearoff=0)
+    standardizemenu.add_command(label="Standardize Elem. Desc.", command=do_standardize_scalar_feature)
+    standardizemenu.add_command(label="Standardize Hist. Desc.", command=do_standardize_histogram_feature)
+    menubar.add_cascade(label="Standardize", menu=standardizemenu)
+
     root.config(menu=menubar)
 
     current_mesh_label = Label(root, text="Current mesh")
