@@ -1,0 +1,14 @@
+City/D01066.obj::a3::autodetected range of [nan, nan] is not finite
+
+PlantIndoors/D00238.obj::a3::autodetected range of [nan, nan] is not finite
+
+PlantIndoors/D00466.obj::a3::autodetected range of [nan, nan] is not finite
+
+PlantIndoors/m1020.obj::a3::autodetected range of [nan, nan] is not finite
+
+PlantIndoors/m1023.obj::a3::autodetected range of [nan, nan] is not finite
+
+Shelf/D00881.obj::a3::autodetected range of [nan, nan] is not finite
+
+TruckNonContainer/D00553.obj::a3::autodetected range of [nan, nan] is not finite
+

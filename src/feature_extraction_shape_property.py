@@ -5,8 +5,8 @@ import numpy as np
 from mesh import Mesh
 import random
 
-D1_NUM_BINS = 50
-NUM_BINS = 100
+D1_NUM_BINS = 8  # big = 50, small = 8
+NUM_BINS = 20    # big = 100, small = 20
 
 # angle between three random points
 def a3(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:

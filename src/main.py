@@ -450,11 +450,11 @@ def do_d4():
 
 def do_batch_shape_descriptors():
     global meshes
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_final.csv"))
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins.csv"))
     folder_name = filedialog.askdirectory(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 10
-    batch_offset = 470
+    batch_offset = 0
     pipeline = Pipeline(ms)
     pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
@@ -619,4 +619,18 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    df_full = pd.read_csv("csv_files/shape_descriptors.csv")
+    df_lower = pd.read_csv("csv_files/shape_descriptors_small_bins.csv")
+    df_name_diff = df_full[~df_full["name"].isin(df_lower["name"])]
+    print(df_name_diff)
+
+    with open("csv_files/shape_descriptors_final.csv", "r") as f:
+        lines = f.readlines()
+        print(len(lines))
+
+    with open("csv_files/shape_descriptors_small_bins.csv", "r") as f:
+        lines = f.readlines()
+        print(len(lines))
+
     main()
+
