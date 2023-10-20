@@ -5,7 +5,6 @@ from pymeshlab import Percentage
 from utils import *
 import numpy as np
 from mesh import Mesh
-import pymesh
 
 '''
 FIRST STITCH HOLES

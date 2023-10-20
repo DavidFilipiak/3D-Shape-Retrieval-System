@@ -16,7 +16,7 @@ def calculate_euclidean_distances(df,object_id):
     object_features = df.loc[df['name'] == object_id].iloc[:, 2:].values
     for index, row in df.iterrows():
         distance = get_euclidean_distance(row.values[2:], object_features[0], 0, 1)
-        distances_df = distances_df.append({'Name': row.values[0], 'Eucl_Distance': distance},ignore_index=True)
+        distances_df = pd.concat([distances_df, pd.DataFrame({'Name': [row.values[0]], 'Eucl_Distance': [distance]})], axis=0, ignore_index=True)
     # Calculate the Euclidean distances for all objects
 
     # Sort the DataFrame by distance in ascending order
@@ -53,7 +53,7 @@ def get_emd(df, query_object):
             distance = get_emd_distance(data[i],query_data[i])
             #overall_distance += distance
             if i == 0:
-                distances_df = distances_df.append({'Name': row.values[0], 'a3_distance': distance},ignore_index=True)
+                distances_df = pd.concat([distances_df, pd.DataFrame({'Name': [row.values[0]], 'a3_distance': [distance]})], axis=0, ignore_index=True)
             else:
                 distances_df['d'+str(i)]= distance
     return distances_df
