@@ -619,10 +619,10 @@ def main() -> None:
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
 
-    inputtxt = Text(root, height=10, width=25,bg="light yellow")
-    inputtxt.grid(row=3, column=0)
-    Display = Button(root, height=2, width=20,text="Show",command= do_query)
-    Display.grid(row=4, column=0)
+    # inputtxt = Text(root, height=10, width=25,bg="light yellow")
+    # inputtxt.grid(row=3, column=0)
+    # Display = Button(root, height=2, width=20,text="Show",command= do_query)
+    # Display.grid(row=4, column=0)
 
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)
