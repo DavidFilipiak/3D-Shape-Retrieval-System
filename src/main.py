@@ -518,6 +518,10 @@ def do_standardize_histogram_feature():
     database.save_table(new_path)
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
+def do_print_mesh():
+    global curr_mesh
+    print(curr_mesh)
+
 def do_nothing():
     pass
 def do_query():
@@ -623,6 +627,9 @@ def main() -> None:
     inputtxt.grid(row=3, column=0)
     Display = Button(root, height=2, width=20,text="Show",command= do_query)
     Display.grid(row=4, column=0)
+
+    print_mesh_btn = Button(root, text="Print mesh", command=do_print_mesh)
+    print_mesh_btn.grid(row=5, column=0)
 
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)

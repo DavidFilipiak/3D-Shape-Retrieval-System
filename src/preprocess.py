@@ -137,7 +137,7 @@ def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     transform_matrix = np.eye(4) * (1 / scale)
     transform_matrix[3, 3] = 1
 
-    meshSet.set_matrix(transformmatrix=transform_matrix)
+    meshSet.set_matrix(transformmatrix=transform_matrix, alllayers=True)
 
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()
