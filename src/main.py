@@ -623,10 +623,10 @@ def main() -> None:
     listbox_loaded_meshes = Listbox(root, width=50)
     listbox_loaded_meshes.grid(row=2, column=0, columnspan=3)
 
-    inputtxt = Text(root, height=10, width=25,bg="light yellow")
-    inputtxt.grid(row=3, column=0)
-    Display = Button(root, height=2, width=20,text="Show",command= do_query)
-    Display.grid(row=4, column=0)
+    # inputtxt = Text(root, height=10, width=25,bg="light yellow")
+    # inputtxt.grid(row=3, column=0)
+    # Display = Button(root, height=2, width=20,text="Show",command= do_query)
+    # Display.grid(row=4, column=0)
 
     print_mesh_btn = Button(root, text="Print mesh", command=do_print_mesh)
     print_mesh_btn.grid(row=5, column=0)

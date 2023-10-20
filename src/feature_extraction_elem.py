@@ -22,11 +22,11 @@ def get_elementary_features(mesh:Mesh, meshSet:pymeshlab.MeshSet) ->Mesh:
     #meshSet.save_current_mesh("/Users/georgioschristopoulos/PycharmProjects/3D-Shape-Retrieval-System/convex_hull.obj")
     print(f"convex hull id:{meshSet.current_mesh().id()}")
     mesh.set_params(
-        ch_volume=get_volume(meshSet.current_mesh()),
+        ch_volume=abs(meshSet.get_geometric_measures()["mesh_volume"]),
         ch_surface_area=get_surface_area(meshSet.current_mesh()),
         ch_compactness=get_compactness(meshSet.current_mesh(), meshSet),
         ch_eccentricity=get_eccentricity(meshSet.current_mesh()),
-        ch_rectangularity=get_rectangularity(meshSet.current_mesh()),
+        ch_rectangularity=get_rectangularity_ch(meshSet.current_mesh(),meshSet),
         ch_diameter=get_diameter(meshSet.current_mesh()),
         ch_aabb_volume=get_AABB_volume(meshSet.current_mesh())
 
@@ -47,7 +47,7 @@ def get_volume(mesh):
 
 def get_compactness(mesh, meshSet:pymeshlab.MeshSet):
     S = get_surface_area(meshSet.current_mesh())
-    return S ** 3 / (36 * math.pi * get_volume(mesh) ** 2)
+    return S ** 3 / (36 * math.pi * meshSet.get_geometric_measures()["mesh_volume"] ** 2)
 
 def get_AABB_volume(mesh):
     return mesh.bounding_box().dim_x() * mesh.bounding_box().dim_y() * mesh.bounding_box().dim_z()
@@ -61,6 +61,9 @@ def get_eccentricity(mesh):
 
 def get_rectangularity(mesh):
     return get_volume(mesh)/get_AABB_volume(mesh)
+
+def get_rectangularity_ch(mesh,meshSet:pymeshlab.MeshSet):
+    return meshSet.get_geometric_measures()["mesh_volume"]/get_AABB_volume(mesh)
 
 
 def get_convexivity(mesh):
