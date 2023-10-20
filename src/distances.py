@@ -5,7 +5,6 @@ from src.main import current_dir
 from scipy.stats import wasserstein_distance
 import pandas as pd
 from database import Database
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
 def calculate_euclidean_distances(df,object_id):
@@ -75,6 +74,7 @@ def main()->None:
     similar_objects_eucl_df = calculate_euclidean_distances(df, "AircraftBuoyant/m1337.obj")
 
     similar_objects_emd_df = get_emd(df2, "AircraftBuoyant/m1337.obj")
+    final_result = pd.merge(similar_objects_eucl_df, similar_objects_emd_df, on='Name', how='inner')
     print("FINISHED")
     # Display the result
 if __name__ == "__main__":
