@@ -169,3 +169,4 @@ new_preprocessed.zip
 preprocessed_files.zip
 zip/
 src/.polyscope.ini
+src/csv_files/distances.csv

@@ -5,6 +5,12 @@ from src.main import current_dir
 from scipy.stats import wasserstein_distance
 import pandas as pd
 from database import Database
+from feature import descriptor_list, descriptor_shape_list
+
+
+elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
+hist_weights = [0.3, 0.1, 0.2, 0.3, 0.1]
+common_weights = [0.6, 0.4]   # elem, hist with respect to each other
 
 
 def calculate_euclidean_distances(df,object_id):
@@ -34,8 +40,6 @@ def get_euclidean_distance(vec_a, vec_b, range_min, range_max, normalize=True):
     return dist
 
 
-
-
 def get_emd(df, query_object):
     #assign weights to the dataframe
     weights = [0.3, 0.1, 0.2, 0.3, 0.1]
@@ -61,20 +65,75 @@ def get_emd(df, query_object):
 def get_emd_distance(vec_a, vec_b):
     return wasserstein_distance(vec_a, vec_b)
 
+
+
+
+def row_emd(row, df, col_name):
+    hist1 = df.loc[df['name'] == row["name1"], col_name].values[0][1]
+    hist2 = df.loc[df['name'] == row["name2"], col_name].values[0][1]
+    return wasserstein_distance(hist1, hist2)
+
+def weighted_l_p_norm(vec_a, vec_b, weights, p=2):
+    dists = np.abs(vec_a - vec_b)
+    dists = dists * weights
+    sum = np.sum(dists ** p)
+    return sum ** (1 / p)
+
+def row_euclid(row, df, descriptor_list, weights: list):
+    feature_vec1 = df.loc[df["name"] == row["name1"], descriptor_list].values
+    feature_vec2 = df.loc[df["name"] == row["name2"], descriptor_list].values
+    dist = weighted_l_p_norm(feature_vec1, feature_vec2, weights)
+    return dist
+
+def calc_pairwise_distances(df):
+    pd.options.display.max_columns = None
+    big_df = pd.merge(df["name"], df["name"], how="cross")
+    big_df = big_df.rename(columns={"name_x": "name1", "name_y": "name2"})
+    big_df = big_df.copy()
+
+    # compute hist similarities
+    for col_name in descriptor_shape_list:
+        big_df.loc[:, col_name + "_dist"] = big_df.apply(lambda row: row_emd(row, df, col_name), axis=1)
+    new_cols = [col_name + "_dist" for col_name in descriptor_shape_list]
+    for col in new_cols:
+        big_df[col] = (big_df[col] - big_df[col].mean()) / big_df[col].std()
+        big_df[col] = big_df[col] + big_df[col].min().abs()
+    #for col in new_cols:
+    #    print(col, big_df[col].mean(), big_df[col].std(), big_df[col].min(), big_df[col].max(), big_df[col].sum())
+    big_df.loc[:, "Hist_dist"] = big_df.loc[:, new_cols].mul(hist_weights).sum(axis=1)
+    big_df.drop(columns=new_cols, inplace=True)
+
+    # compute similarity of elementary descriptors
+    big_df.loc[:, "Eucl_dist"] = big_df.apply(lambda row: row_euclid(row, df, descriptor_list, elem_weights), axis=1)
+    big_df.loc[:, "dist"] = big_df.loc[:, ["Hist_dist", "Eucl_dist"]].mul(common_weights).sum(axis=1)
+    big_df.drop(columns=["Hist_dist", "Eucl_dist"], inplace=True)
+
+    #print(big_df.head(20))
+    #print(len(big_df))
+    return big_df
+
+
+
 def main()->None:
     database = Database()
     filename = os.path.abspath(os.path.join(current_dir, "csv_files", "aaaaaaaaaaall_desc_standardized.csv"))
     database.load_table(filename)
     df = database.get_table()
-    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_final_standardized.csv"))
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins_standardized.csv"))
     database.clear_table()
     database.load_table(filename)
     df2 = database.get_table()
     result = pd.merge(df, df2, on='name', how='inner')
-    similar_objects_eucl_df = calculate_euclidean_distances(df, "AircraftBuoyant/m1337.obj")
+    final_result = calc_pairwise_distances(result)
 
-    similar_objects_emd_df = get_emd(df2, "AircraftBuoyant/m1337.obj")
-    final_result = pd.merge(similar_objects_eucl_df, similar_objects_emd_df, on='Name', how='inner')
+    database.clear_table()
+    database.add_table(final_result, "distances_test")
+    database.save_table(os.path.abspath(os.path.join(current_dir, "csv_files", "distances.csv")))
+
+    #similar_objects_eucl_df = calculate_euclidean_distances(df, "AircraftBuoyant/m1337.obj")
+
+    #similar_objects_emd_df = get_emd(df2, "AircraftBuoyant/m1337.obj")
+    #final_result = pd.merge(similar_objects_eucl_df, similar_objects_emd_df, on='Name', how='inner')
     print("FINISHED")
     # Display the result
 if __name__ == "__main__":
