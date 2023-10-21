@@ -33,9 +33,14 @@ def stitch_holes(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     return mesh
 
 def fix_face_normals(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
-    if(meshSet.get_topological_measures()["non_two_manifold_edges"] > 0):
-        meshSet.meshing_repair_non_manifold_edges(method = 1)
-    meshSet.meshing_re_orient_faces_coherentely()
+    try:
+        if (meshSet.get_topological_measures()["non_two_manifold_edges"] > 0):
+            meshSet.meshing_repair_non_manifold_edges(method=1)
+        meshSet.meshing_re_orient_faces_coherentely()
+    except:
+        print(f"Could not fix face normals: {meshSet.current_mesh().label()}")
+        pass
+
 
 
     return mesh
