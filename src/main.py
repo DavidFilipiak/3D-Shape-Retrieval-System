@@ -20,6 +20,7 @@ from utils import *
 from pipeline import Pipeline
 from feature import *
 from analyze import *
+from query import *
 
 
 # GLOBAL VARIABLES
@@ -518,14 +519,68 @@ def do_standardize_histogram_feature():
     database.save_table(new_path)
     current_csv_label.config(text=f"Current CSV: {database.table_name}")
 
+
+def do_query_naive_dist_weight():
+    filename = filedialog.askopenfilename(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")), filetypes=[('Mesh files', '*.obj')])
+    mesh_to_find = "/".join(filename.split("/")[-2:])
+    if database.table_name != "distances.csv":
+        database.load_table("csv_files/distances.csv")
+        current_csv_label.config(text=f"Current CSV: {database.table_name}")
+    table = database.get_table()
+    closest_meshes = naive_weighted_distances(mesh_to_find, table)
+    for mesh in closest_meshes:
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        ms.load_new_mesh(full_file)
+        add_mesh_to_system(full_file)
+        print(mesh)
+    ms.show_polyscope()
+
+def do_query_naive_feature_weight():
+    filename = filedialog.askopenfilename(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")), filetypes=[('Mesh files', '*.obj')])
+    mesh_to_find = "/".join(filename.split("/")[-2:])
+
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "aaaaaaaaaaall_desc_standardized.csv"))
+    database.load_table(filename)
+    df1 = database.get_table()
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins_standardized.csv"))
+    database.clear_table()
+    database.load_table(filename)
+    df2 = database.get_table()
+
+    closest_meshes = naive_weighted_features(mesh_to_find, df1, df2)
+    for mesh in closest_meshes:
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        ms.load_new_mesh(full_file)
+        add_mesh_to_system(full_file)
+        print(mesh)
+    ms.show_polyscope()
+
 def do_print_mesh():
     global curr_mesh
+    current_mesh = ms.current_mesh()
+    num_triangles, num_quads = count_triangles_and_quads(current_mesh.polygonal_face_list())
+    curr_mesh.set_params(
+        num_vertices=current_mesh.vertex_number(),
+        num_faces=current_mesh.face_number(),
+        num_triangles=num_triangles,
+        num_quads=num_quads,
+        class_name=os.path.dirname(filename).split('/')[-1],
+        name=filename.split('/')[-1],
+        bb_dim_x=current_mesh.bounding_box().dim_x(),
+        bb_dim_y=current_mesh.bounding_box().dim_y(),
+        bb_dim_z=current_mesh.bounding_box().dim_z(),
+        bb_diagonal=current_mesh.bounding_box().diagonal(),
+        barycenter=get_barycenter(current_mesh.vertex_matrix()),
+        major_eigenvector=get_principal_components(current_mesh.vertex_matrix())[0][1],
+        median_eigenvector=get_principal_components(current_mesh.vertex_matrix())[1][1],
+        minor_eigenvector=get_principal_components(current_mesh.vertex_matrix())[2][1],
+        mass_directions=get_mass_directions(current_mesh.vertex_matrix(), current_mesh.face_matrix()),
+    )
     print(curr_mesh)
 
 def do_nothing():
     pass
-def do_query():
-    pass
+
 def main() -> None:
     global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir, root, blacklist
     filename = ''
@@ -555,6 +610,12 @@ def main() -> None:
     filemenu.add_command(label="Save All Elementary Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_list))
     filemenu.add_command(label="Save All Advanced Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_shape_list))
     menubar.add_cascade(label="File", menu=filemenu)
+    # Query menu
+    querymenu = Menu(menubar, tearoff=0)
+    querymenu.add_command(label="Naive Feature Weighting", command=do_query_naive_feature_weight)
+    querymenu.add_command(label="Naive Distance Weighting", command=do_query_naive_dist_weight)
+    querymenu.add_command(label="Scaled", command=do_nothing)
+    menubar.add_cascade(label="Query", menu=querymenu)
     # Show menu
     showmenu = Menu(menubar, tearoff=0)
     showmenu.add_command(label="Current Mesh", command=do_nothing)

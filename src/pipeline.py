@@ -1,6 +1,7 @@
 from __future__ import annotations
 import pymeshlab
 from mesh import Mesh
+from utils import *
 
 
 class Pipeline:
@@ -36,6 +37,8 @@ class Pipeline:
                         mesh[i] = modifier(m, self.ms)
                     else:
                         mesh[i] = modifier(m, self.ms, **func_args)
+                    if verbose:
+                        print(self.ms.current_mesh().bounding_box().diagonal(), get_barycenter(self.ms.current_mesh().vertex_matrix()))
             return mesh
         else:
             raise Exception("mesh must be Mesh or list[Mesh] and is " + str(type(mesh)))

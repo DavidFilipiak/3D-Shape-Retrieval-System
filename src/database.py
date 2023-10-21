@@ -41,7 +41,7 @@ class Database:
         for f in vector_feature_list:
             if f in new_table.columns:
                 new_table[f] = new_table[f].apply(string_to_np_array)
-        new_table = new_table[~new_table['name'].isin(name_blacklist)]
+        #new_table = new_table[~new_table['name'].isin(name_blacklist)]
         self.add_table(new_table, name=os.path.basename(path))
 
     def add_table(self, table: pd.DataFrame, name="") -> None:

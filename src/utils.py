@@ -23,7 +23,7 @@ def get_principal_components(vertex_matrix):
     covariance_matrix = np.cov(np.transpose(vertex_matrix))
     eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
     principal_components = [(val, vector) for val, vector in zip(eigenvalues, eigenvectors)]
-    principal_components.sort(key=lambda x: x[0], reverse=False)
+    principal_components.sort(key=lambda x: x[0], reverse=True)
     return principal_components
 
 
@@ -48,6 +48,15 @@ def get_mass_directions(vertex_matrix, face_matrix):
 
     return np.array([sign(fx), sign(fy), sign(fz)])
 
+def flatten_nested_array(arr):
+    flattened_elements = []
+    for element in arr:
+        if isinstance(element, np.ndarray):
+            flattened_elements.extend(list(element))
+        else:
+            flattened_elements.append(element)
+    resulting_array = np.array(flattened_elements)
+    return resulting_array
 
 def dot(a, b):
     return sum([a[i] * b[i] for i in range(len(a))])

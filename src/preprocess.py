@@ -128,17 +128,17 @@ def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
 def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
-    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
+    #meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter', freeze=True, alllayers=True)
 
     #
-    # bb = meshSet.current_mesh().bounding_box()
-    # min_point = bb.min()
-    # max_point = bb.max()
-    # scale = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
-    # transform_matrix = np.eye(4) * (1 / scale)
-    # transform_matrix[3, 3] = 1
+    bb = meshSet.current_mesh().bounding_box()
+    min_point = bb.min()
+    max_point = bb.max()
+    scale = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    transform_matrix = np.eye(4) * (1 / scale)
+    transform_matrix[3, 3] = 1
 
-    # meshSet.set_matrix(transformmatrix=transform_matrix, alllayers=True)
+    meshSet.set_matrix(transformmatrix=transform_matrix, alllayers=True)
 
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()
