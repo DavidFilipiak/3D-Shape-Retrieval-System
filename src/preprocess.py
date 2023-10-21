@@ -21,7 +21,12 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
-    meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
+    #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1, collapseflag = False,swapflag = False,smoothflag= False, reprojectflag = False)
+    if(meshSet.get_topological_measures()["non_two_manifold_edges"] > 0):
+        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
+    else:
+        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3,
+                                                    collapseflag=False, smoothflag=False)
     while (meshSet.current_mesh().vertex_number() <= TARGET):
         iter += 1
         meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
@@ -44,8 +49,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     while (meshSet.current_mesh().vertex_number() > TARGET):
         # meshSet.meshing_repair_non_manifold_edges()
         print(meshSet.current_mesh().label())
-        meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces,
-                             preservenormal=True)
+        meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces, preservenormal=True, preservetopology = True)
         print("Decimated to", numFaces, "faces mesh has", meshSet.current_mesh().vertex_number(), "vertex")
         # Refine our estimation to slowly converge to TARGET vertex number
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
@@ -128,17 +132,16 @@ def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
 
 def scale_to_unit_cube(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
-    meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
+    #meshSet.compute_matrix_from_scaling_or_normalization(unitflag=True, scalecenter='barycenter')
 
-    #
-    # bb = meshSet.current_mesh().bounding_box()
-    # min_point = bb.min()
-    # max_point = bb.max()
-    # scale = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
-    # transform_matrix = np.eye(4) * (1 / scale)
-    # transform_matrix[3, 3] = 1
+    bb = meshSet.current_mesh().bounding_box()
+    min_point = bb.min()
+    max_point = bb.max()
+    scale = max(max_point[0] - min_point[0], max_point[1] - min_point[1], max_point[2] - min_point[2])
+    transform_matrix = np.eye(4) * (1 / scale)
+    transform_matrix[3, 3] = 1
 
-    # meshSet.set_matrix(transformmatrix=transform_matrix, alllayers=True)
+    meshSet.set_matrix(transformmatrix=transform_matrix, alllayers=True)
 
     # change parameters of current mesh
     current_mesh = meshSet.current_mesh()
