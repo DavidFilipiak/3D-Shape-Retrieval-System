@@ -167,6 +167,14 @@ def save_current_mesh_obj() -> None:
     ms.save_current_mesh(filename)
 
 
+def save_all_meshes() -> None:
+    global meshes
+    filename = filedialog.askdirectory(title="Select directory", initialdir=current_dir, mustexist=True, parent=root)
+    for mesh in meshes.values():
+        ms.set_current_mesh(mesh.pymeshlab_id)
+        ms.save_current_mesh(os.path.join(filename, mesh.name.split('/')[-1]))
+    print("Saved all meshes")
+    #ms.save_current_mesh(filename)
 def save_all_meshes_csv(feature_list_to_save) -> None:
     filename = filedialog.asksaveasfilename(title="CSV save", initialdir=current_dir, filetypes=[('CSV files', '*.csv')])
     feature_dict = {feature: [] for feature in id_list + feature_list_to_save}
@@ -198,16 +206,18 @@ def get_elem_features():
 
 def batch_preprocess():
     global meshes
-    output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed"))
+    output_dir = os.path.abspath(os.path.join(current_dir, "..", "preprocessed_rescaled"))
     folder_name = filedialog.askdirectory(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 20
     batch_offset = 0
     pipeline = Pipeline(ms)
-    pipeline.add(resample_mesh)
     pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
-    pipeline.add(align)
-    pipeline.add(flip)
+    # pipeline.add(resample_mesh)
+    # pipeline.add(translate_to_origin)
+    # pipeline.add(scale_to_unit_cube)
+    # pipeline.add(align)
+    # pipeline.add(flip)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
     while file_count == batch_size:
@@ -405,10 +415,6 @@ def do_flip():
 
 def do_stitch_holes():
     global meshes
-
-
-    # with open("meshes_our_class.pkl", "rb") as file:
-    #     meshes = pickle.load(file)
     p = Pipeline(ms)
     p.add(stitch_holes)
     aligned_meshes = p.run(list(meshes.values()))
@@ -551,6 +557,7 @@ def main() -> None:
     filemenu.add_command(label="Clear Selected (.obj)", command=clear_selected_meshes_obj)
     filemenu.add_separator()
     filemenu.add_command(label="Save Current Mesh (.obj)", command=save_current_mesh_obj)
+    filemenu.add_command(label="Save all Meshes (.obj)", command=save_all_meshes)
     filemenu.add_command(label="Save All Features (.csv)", command=lambda: save_all_meshes_csv(feature_list))
     filemenu.add_command(label="Save All Elementary Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_list))
     filemenu.add_command(label="Save All Advanced Descriptors (.csv)", command=lambda: save_all_meshes_csv(descriptor_shape_list))

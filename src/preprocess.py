@@ -22,14 +22,11 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
     #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1, collapseflag = False,swapflag = False,smoothflag= False, reprojectflag = False)
-    if(meshSet.get_topological_measures()["non_two_manifold_edges"] > 0):
-        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
-    else:
-        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3,
-                                                    collapseflag=False, smoothflag=False)
+    #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
+    #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1,collapseflag=False, smoothflag=False)
     while (meshSet.current_mesh().vertex_number() <= TARGET):
         iter += 1
-        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)
+        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=iter)#,collapseflag = False,swapflag = False,smoothflag= False, reprojectflag = False)
         print(f"vertice number {meshSet.current_mesh().vertex_number()}")
         current_vertex_count = meshSet.current_mesh().vertex_number()
         print(f"Vertex number: {current_vertex_count}")
@@ -49,10 +46,12 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     while (meshSet.current_mesh().vertex_number() > TARGET):
         # meshSet.meshing_repair_non_manifold_edges()
         print(meshSet.current_mesh().label())
-        meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces, preservenormal=True, preservetopology = True)
+        meshSet.apply_filter('meshing_decimation_quadric_edge_collapse', targetfacenum=numFaces, preservenormal=True)
         print("Decimated to", numFaces, "faces mesh has", meshSet.current_mesh().vertex_number(), "vertex")
         # Refine our estimation to slowly converge to TARGET vertex number
         numFaces = numFaces - (meshSet.current_mesh().vertex_number() - TARGET)
+
+
     current_mesh = meshSet.current_mesh()
     mesh.set_params(
         num_faces =current_mesh.face_number(),
@@ -227,7 +226,11 @@ def flip(mesh:Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     meshSet.set_matrix(transformmatrix=transform_matrix)
 
     mesh.set_params(
-        mass_directions=np.array([x, y, z])
+        mass_directions=np.array([x, y, z]),
+        bb_dim_x= meshSet.current_mesh().bounding_box().dim_x(),
+        bb_dim_y= meshSet.current_mesh().bounding_box().dim_y(),
+        bb_dim_z= meshSet.current_mesh().bounding_box().dim_z(),
+        bb_diagonal= meshSet.current_mesh().bounding_box().diagonal()
     )
 
     return mesh
