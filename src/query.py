@@ -36,7 +36,7 @@ def calculate_euclidean_distances(df, object_id):
 def get_cosine_sim(vec_a, vec_b):
     return np.dot(vec_a, vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b))
 
-def lp_norm(vec_a, vec_b, p=2):
+def lp_norm(vec_a, vec_b, p=1):
     dists = np.abs(vec_a - vec_b)
     sum = np.sum(dists ** p)
     return sum ** (1 / p)

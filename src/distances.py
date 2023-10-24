@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 from src.main import current_dir
 from scipy.stats import wasserstein_distance
@@ -79,7 +78,9 @@ def weighted_l_p_norm(vec_a, vec_b, weights, p=2):
     sum = np.sum(dists ** p)
     return sum ** (1 / p)
 
-def row_euclid(row, df, descriptor_list, weights: list):
+def row_euclid(row, df, descriptor_list, weights: list = []):
+    if len(weights) == 0:
+        weights = [1] * len(descriptor_list)
     feature_vec1 = df.loc[df["name"] == row["name1"], descriptor_list].values
     feature_vec2 = df.loc[df["name"] == row["name2"], descriptor_list].values
     dist = weighted_l_p_norm(feature_vec1, feature_vec2, weights)
@@ -89,6 +90,8 @@ def calc_pairwise_distances(df):
     pd.options.display.max_columns = None
     big_df = pd.merge(df["name"], df["name"], how="cross")
     big_df = big_df.rename(columns={"name_x": "name1", "name_y": "name2"})
+    big_df = big_df[big_df["name1"].isin(["Humanoid/m119.obj","Vase/m541.obj"])]
+    print(len(big_df))
     big_df = big_df.copy()
 
     # compute hist similarities
@@ -97,16 +100,18 @@ def calc_pairwise_distances(df):
     new_cols = [col_name + "_dist" for col_name in descriptor_shape_list]
     for col in new_cols:
         big_df[col] = (big_df[col] - big_df[col].mean()) / big_df[col].std()
-        big_df[col] = big_df[col] + big_df[col].min().abs()
+        #big_df[col] = big_df[col] + big_df[col].min().abs()
     #for col in new_cols:
     #    print(col, big_df[col].mean(), big_df[col].std(), big_df[col].min(), big_df[col].max(), big_df[col].sum())
-    big_df.loc[:, "Hist_dist"] = big_df.loc[:, new_cols].mul(hist_weights).sum(axis=1)
-    big_df.drop(columns=new_cols, inplace=True)
+    #big_df.loc[:, "Hist_dist"] = big_df.loc[:, new_cols].mul(hist_weights).sum(axis=1)
+    #big_df.drop(columns=new_cols, inplace=True)
 
     # compute similarity of elementary descriptors
-    big_df.loc[:, "Eucl_dist"] = big_df.apply(lambda row: row_euclid(row, df, descriptor_list, elem_weights), axis=1)
-    big_df.loc[:, "dist"] = big_df.loc[:, ["Hist_dist", "Eucl_dist"]].mul(common_weights).sum(axis=1)
-    big_df.drop(columns=["Hist_dist", "Eucl_dist"], inplace=True)
+    big_df.loc[:, "Eucl_dist"] = big_df.apply(lambda row: row_euclid(row, df, descriptor_list), axis=1)
+    #big_df.loc[:, "dist"] = big_df.loc[:, ["Hist_dist", "Eucl_dist"]].mul(common_weights).sum(axis=1)
+    big_df.loc[:, "dist"] = big_df.apply(lambda row: row.iloc[2:].sum() / len(row.iloc[2:]), axis=1)
+    big_df.drop(columns=["Eucl_dist"] + new_cols, inplace=True)
+    big_df["dist"] = big_df["dist"] + abs(big_df["dist"].min())
 
     #print(big_df.head(20))
     #print(len(big_df))
@@ -128,7 +133,7 @@ def main()->None:
 
     database.clear_table()
     database.add_table(final_result, "distances_test")
-    database.save_table(os.path.abspath(os.path.join(current_dir, "csv_files", "distances.csv")))
+    database.save_table(os.path.abspath(os.path.join(current_dir, "csv_files", "distances_test.csv")))
 
     #similar_objects_eucl_df = calculate_euclidean_distances(df, "AircraftBuoyant/m1337.obj")
 
