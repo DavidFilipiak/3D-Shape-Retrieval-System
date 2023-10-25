@@ -176,3 +176,19 @@ def reshape_to_square_matrix(arr):
         matrix[i // size][i % size] = arr[i]
 
     return matrix
+
+
+def draw_scatterplot(df_data, x_label="", y_label="", title=""):
+    plt.rcParams["figure.figsize"] = [13, 6]
+    plt.rcParams["figure.autolayout"] = True
+    fig = plt.figure(1)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    classes = df_data['class_name'].unique()
+    for class_name in classes:
+        data = df_data.loc[df_data['class_name'] == class_name].iloc[:, 2:].values
+        color = np.random.rand(3, )
+        plt.scatter(data[:, 0], data[:, 1], s=1, color=color)
+    plt.show()
+    return fig

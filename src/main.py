@@ -355,6 +355,11 @@ def do_analyze_current_mesh(feature):
         hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
         draw_histogram(hist_x[:-1], hist_y, 0, MAX, xlabel='Face area', ylabel='Number of faces')
 
+def do_analyze_dr():
+    table = database.get_table()
+    df_tsne = reduce_tsne(table)
+    draw_scatterplot(df_tsne)
+
 
 def do_full_preprocess():
     global meshes
@@ -645,6 +650,10 @@ def main() -> None:
     for descriptor in show_descriptor_shape_dict.keys():
         descriptormenu.add_command(label=descriptor, command=lambda d=descriptor: analyze_feature(d))
     analyzemenu.add_cascade(label="All descriptors (.csv)", menu=descriptormenu)
+    drmenu = Menu(analyzemenu, tearoff=0)
+    drmenu.add_command(label="t-SNE", command=do_analyze_dr)
+    analyzemenu.add_cascade(label="Dimensionality Reduction", menu=drmenu)
+
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu
     preprocessmenu = Menu(menubar, tearoff=0)

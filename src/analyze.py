@@ -2,6 +2,9 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 import math
+from sklearn.manifold import TSNE
+from utils import flatten_nested_array
+from feature import descriptor_shape_list, descriptor_list
 
 
 # basically an interface
@@ -141,6 +144,30 @@ def analyze_mass_orientation(table: pd.DataFrame, colName: str):
     analysis_z = analyze_feature_all(extract, -1, 1)
 
     return (analysis_x, analysis_y, analysis_z)
+
+
+def reduce_tsne(df):
+    df = df.copy()
+    df_values = df.drop(columns=['name', 'class_name'])
+    X = [[] for _ in range(len(df_values.values))]
+    desc_columns = df_values.columns
+
+    for i, elem_descriptor in enumerate(descriptor_list):
+        if elem_descriptor in desc_columns:
+            for j, row in enumerate(df_values[elem_descriptor].values):
+                X[j].append(row[1])
+    for hist_descriptor in descriptor_shape_list:
+        if hist_descriptor in desc_columns:
+            df_values[hist_descriptor] = df_values[hist_descriptor].apply(lambda x: x[1])
+            for j, row in enumerate(df_values[hist_descriptor].values):
+                X[j].extend(list(row))
+
+    values = np.asarray(X, dtype=np.float64)
+    values_tsne = TSNE(n_components=2).fit_transform(values)
+    df_tsne = pd.DataFrame(values_tsne, columns=['x', 'y'])
+    df_tsne.insert(0, 'name', df['name'])
+    df_tsne.insert(1, 'class_name', df['class_name'])
+    return df_tsne
 
 
 
