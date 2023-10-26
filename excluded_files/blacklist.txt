@@ -39,4 +39,3 @@ Tree/D00095.obj
 Tree/D00439.obj
 Tree/D00533.obj
 Tree/D00834.obj
-Car/m1556.obj
