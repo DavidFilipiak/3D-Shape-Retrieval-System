@@ -5,7 +5,11 @@ import math
 from sklearn.manifold import TSNE
 from utils import flatten_nested_array
 from feature import descriptor_shape_list, descriptor_list
-from query import elem_weights, hist_weights, common_weights
+
+#change weights here
+elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
+hist_weights = [0.3, 0.1, 0.2, 0.3, 0.1]
+common_weights = [0.4, 0.6]   # elem, hist with respect to each other
 
 
 # basically an interface

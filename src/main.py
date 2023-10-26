@@ -572,7 +572,7 @@ def do_query_naive_feature_weight():
         print(mesh)
     ms.show_polyscope()
 
-def do_kdtree():
+def do_kdtree(dr_method):
     filename = filedialog.askopenfilename(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "preprocessed")),
                                           filetypes=[('Mesh files', '*.obj')])
@@ -586,14 +586,16 @@ def do_kdtree():
     database.load_table(filename)
     df2 = database.get_table()
 
-    result = pd.merge(df1, df2, on='name', how='inner')
+    result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
 
-    query_meshes = get_kdtree(mesh_to_find, result)
-
-    # Assuming you want to visualize or do something with query_meshes in the ms.show_polyscope() function
+    closest_meshes = get_kdtree(mesh_to_find, result, dr=dr_method)
+    for mesh in closest_meshes:
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        ms.load_new_mesh(full_file)
+        add_mesh_to_system(full_file)
+        print(mesh)
     ms.show_polyscope()
 
-    return query_meshes
 
 def do_print_mesh():
     global curr_mesh
@@ -655,7 +657,8 @@ def main() -> None:
     querymenu = Menu(menubar, tearoff=0)
     querymenu.add_command(label="Naive Feature Weighting", command=do_query_naive_feature_weight)
     querymenu.add_command(label="Naive Distance Weighting", command=do_query_naive_dist_weight)
-    querymenu.add_command(label="KD tree", command=do_kdtree)
+    querymenu.add_command(label="KD tree (no DR)", command=lambda: do_kdtree("none"))
+    querymenu.add_command(label="KD tree (t-SNE)", command=lambda: do_kdtree("t-sne"))
     querymenu.add_command(label="Scaled", command=do_nothing)
     menubar.add_cascade(label="Query", menu=querymenu)
     # Show menu

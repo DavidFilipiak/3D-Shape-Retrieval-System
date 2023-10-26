@@ -4,6 +4,7 @@ from scipy.stats import wasserstein_distance
 from feature import descriptor_list, descriptor_shape_list
 from utils import flatten_nested_array
 from sklearn.neighbors import KDTree
+from analyze import reduce_tsne
 
 
 #change weights here
@@ -93,45 +94,39 @@ def naive_weighted_distances(mesh_name, df, n=5):
 
 
 
+# dr = "none" | "t-sne" | "umap"
+def get_kdtree(mesh_to_find, result, dr="t-sne"):
+    if dr == "t-sne":
+        df_tsne = reduce_tsne(result)
+        values = df_tsne.iloc[:, 2:].to_numpy()
+    elif dr == "umap":
+        # maybe in the future???
+        values = np.zeros(1)
+        pass
+    else:
+        X = [[] for _ in range(len(result.values))]
+        desc_columns = result.columns
 
-def get_kdtree(mesh_to_find, result):
-    object_features = result.loc[result['name'] == mesh_to_find].iloc[:, 2:]
-    del object_features['class_name_y']
-    del result["class_name_y"]
-    X = [[] for _ in range(len(result.values))]
-    desc_columns = result.columns
+        for i, elem_descriptor in enumerate(descriptor_list):
+            if elem_descriptor in desc_columns:
+                for j, row in enumerate(result[elem_descriptor].values):
+                    X[j].append(row)
+        for hist_descriptor in descriptor_shape_list:
+            if hist_descriptor in desc_columns:
+                result[hist_descriptor] = result[hist_descriptor].apply(lambda x: x[1])
+                for j, row in enumerate(result[hist_descriptor].values):
+                    X[j].extend(list(row))
 
-    for i, elem_descriptor in enumerate(descriptor_list):
-        if elem_descriptor in desc_columns:
-            for j, row in enumerate(result[elem_descriptor].values):
-                X[j].append(row)
-    for hist_descriptor in descriptor_shape_list:
-        if hist_descriptor in desc_columns:
-            result[hist_descriptor] = result[hist_descriptor].apply(lambda x: x[1])
-            for j, row in enumerate(result[hist_descriptor].values):
-                X[j].extend(list(row))
+        values = np.asarray(X, dtype=np.float64)
 
-    values = np.asarray(X, dtype=np.float64)
     # Build KDTree from df2
     tree = KDTree(values)
 
-    X = [[] for _ in range(len(object_features.values))]
-    for i, elem_descriptor in enumerate(descriptor_list):
-        if elem_descriptor in desc_columns:
-            for j, row in enumerate(object_features[elem_descriptor].values):
-                X[j].append(row)
-    for hist_descriptor in descriptor_shape_list:
-        if hist_descriptor in desc_columns:
-            object_features[hist_descriptor] = object_features[hist_descriptor].apply(lambda x: x[1])
-            for j, row in enumerate(object_features[hist_descriptor].values):
-                X[j].extend(list(row))
-
-    values_query = np.asarray(X, dtype=np.float64)
     # Let's get the top 5 closest neighbors for demonstration
-    distances, indices = tree.query(values_query, k=5)
+    mesh_idx = result[result['name'] == mesh_to_find].index.values[0]
+    distances, indices = tree.query([values[mesh_idx]], k=6)
 
     # Extract the names of the meshes corresponding to the indices
-    mesh_names = result.iloc[indices[0]].index.tolist()
-    filtered_df = result.iloc[mesh_names]
-    print(filtered_df)
-    return mesh_names
+    filter_df = result.iloc[indices[0]]
+    mesh_names = filter_df['name'].values
+    return [[name, dist] for name, dist in zip(mesh_names, distances[0])]
