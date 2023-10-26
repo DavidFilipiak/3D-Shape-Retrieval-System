@@ -478,14 +478,14 @@ def do_d4():
 
 def do_batch_shape_descriptors():
     global meshes
-    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_small_bins_v2.csv"))
+    output_file = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying.csv"))
     folder_name = filedialog.askdirectory(title="Mesh select",
                                           initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")))
     batch_size = 10
     batch_offset = 0
     pipeline = Pipeline(ms)
-    pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
+    pipeline.add(translate_to_origin)
     pipeline.add(a3)
     pipeline.add(d1)
     pipeline.add(d2)
@@ -506,7 +506,7 @@ def do_batch_shape_descriptors():
 
         clear_all_meshes_obj()
 
-        if batch_offset >= 470:
+        if batch_offset < -1:
             break
 
         file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)

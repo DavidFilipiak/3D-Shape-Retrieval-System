@@ -163,7 +163,7 @@ def reduce_tsne(df):
                 X[j].extend(list(row))
 
     values = np.asarray(X, dtype=np.float64)
-    values_tsne = TSNE(n_components=2).fit_transform(values)
+    values_tsne = TSNE(n_components=2, perplexity=10).fit_transform(values)
     df_tsne = pd.DataFrame(values_tsne, columns=['x', 'y'])
     df_tsne.insert(0, 'name', df['name'])
     df_tsne.insert(1, 'class_name', df['class_name'])
