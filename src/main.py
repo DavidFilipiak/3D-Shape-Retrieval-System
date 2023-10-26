@@ -356,7 +356,13 @@ def do_analyze_current_mesh(feature):
         draw_histogram(hist_x[:-1], hist_y, 0, MAX, xlabel='Face area', ylabel='Number of faces')
 
 def do_analyze_dr():
-    table = database.get_table()
+    hist_path = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
+    elem_path = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+    database.load_table(elem_path)
+    table_elem = database.get_table()
+    database.load_table(hist_path)
+    table_hist = database.get_table()
+    table = pd.merge(table_elem, table_hist, on=["name","class_name"])
     df_tsne = reduce_tsne(table)
     draw_scatterplot(df_tsne)
 

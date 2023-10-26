@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import random
+import itertools
 
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
@@ -186,9 +187,14 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     classes = df_data['class_name'].unique()
-    for class_name in classes:
+    distinct_colors = ["#2f4f4f","#800000","#008000","#4b0082","#ff8c00","#ffff00","#00ff00","#00ffff","#0000ff","#ff00ff","#eee8aa","#6495ed","#ff69b4"]
+    distinct_shapes = ["o", "v", "^", "s", "<", ">"]
+    #classes = random.sample(list(classes), 20)
+    #classes = ["HumanHead", "Helicopter"]
+    for i, class_name in enumerate(classes):
         data = df_data.loc[df_data['class_name'] == class_name].iloc[:, 2:].values
-        color = np.random.rand(3, )
-        plt.scatter(data[:, 0], data[:, 1], s=1, color=color)
+        plt.scatter(data[:, 0], data[:, 1], s=10, color=distinct_colors[i % len(distinct_colors)], marker=distinct_shapes[i % len(distinct_shapes)], edgecolors='black', linewidths=0.1)
+
+    plt.legend(classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
     plt.show()
     return fig

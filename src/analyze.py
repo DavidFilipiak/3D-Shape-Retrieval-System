@@ -5,6 +5,7 @@ import math
 from sklearn.manifold import TSNE
 from utils import flatten_nested_array
 from feature import descriptor_shape_list, descriptor_list
+from query import elem_weights, hist_weights, common_weights
 
 
 # basically an interface
@@ -155,15 +156,15 @@ def reduce_tsne(df):
     for i, elem_descriptor in enumerate(descriptor_list):
         if elem_descriptor in desc_columns:
             for j, row in enumerate(df_values[elem_descriptor].values):
-                X[j].append(row[1])
-    for hist_descriptor in descriptor_shape_list:
+                X[j].append(row * elem_weights[i] * common_weights[0])
+    for i, hist_descriptor in enumerate(descriptor_shape_list):
         if hist_descriptor in desc_columns:
             df_values[hist_descriptor] = df_values[hist_descriptor].apply(lambda x: x[1])
             for j, row in enumerate(df_values[hist_descriptor].values):
-                X[j].extend(list(row))
+                X[j].extend(list(np.asarray(row) * hist_weights[i] * common_weights[1]))
 
     values = np.asarray(X, dtype=np.float64)
-    values_tsne = TSNE(n_components=2, perplexity=10).fit_transform(values)
+    values_tsne = TSNE(n_components=2, perplexity=15, n_iter_without_progress=1000).fit_transform(values)
     df_tsne = pd.DataFrame(values_tsne, columns=['x', 'y'])
     df_tsne.insert(0, 'name', df['name'])
     df_tsne.insert(1, 'class_name', df['class_name'])
