@@ -589,10 +589,13 @@ def do_kdtree(dr_method):
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
 
     closest_meshes = get_kdtree(mesh_to_find, result, dr=dr_method)
+    counter = 0
     for mesh in closest_meshes:
+        counter+= 1
         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
         ms.load_new_mesh(full_file)
         add_mesh_to_system(full_file)
+        ms.compute_matrix_from_translation(axisx = counter*1)
         print(mesh)
     ms.show_polyscope()
 
