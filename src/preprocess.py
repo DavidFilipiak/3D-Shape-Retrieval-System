@@ -21,8 +21,7 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     previous_vertex_count = None
     consecutive_constant_count = 0
     max_consecutive_constant_iterations = 1
-    #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1, collapseflag = False,swapflag = False,smoothflag= False, reprojectflag = False)
-    #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
+    meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=3)
     #meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1,collapseflag=False, smoothflag=False)
     while (meshSet.current_mesh().vertex_number() <= TARGET):
         iter += 1
@@ -59,57 +58,6 @@ def resample_mesh(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') 
     )
 
     return mesh
-
-def resample_mesh_david_attempt(mesh: Mesh, meshSet: pymeshlab.MeshSet, result_filename = '') -> Mesh:
-    TARGET_LOW = 8000
-    TARGET_HIGH = 13000
-    iter = 0
-
-    target_edge_length = max(mesh.bb_dim_x, mesh.bb_dim_y, mesh.bb_dim_z) / 100
-    previous_vertex_count = meshSet.current_mesh().vertex_number()
-
-    while not (TARGET_LOW <= meshSet.current_mesh().vertex_number() <= TARGET_HIGH):
-        iter += 1
-        print(f"iteration {iter}, target_edge_length {target_edge_length}")
-        # Do just one remeshing iteration per one while iteration
-        meshSet.meshing_isotropic_explicit_remeshing(targetlen=AbsoluteValue(target_edge_length), iterations=1)
-        # meshSet.repair_non_manifold_edges()
-        print(f"Vertex number: {previous_vertex_count}")
-        current_vertex_count = meshSet.current_mesh().vertex_number()
-        print(f"Vertex number: {current_vertex_count}")
-        # Check if the current vertex count is the same as the previous vertex count
-        var = max(0.0, math.log10(current_vertex_count) - 2)
-        if current_vertex_count < TARGET_LOW or current_vertex_count > TARGET_HIGH:
-            gap = 1000
-        else:
-            gap = 100
-        #print(gap)
-        rate_of_change = 1/10
-        diff_low, diff_high = current_vertex_count - TARGET_LOW, TARGET_HIGH - current_vertex_count
-
-
-        if current_vertex_count - gap <= previous_vertex_count <= current_vertex_count + gap:
-            if current_vertex_count < TARGET_LOW:
-                print("IF 1")
-                target_edge_length *= (1 - rate_of_change)
-            elif current_vertex_count > TARGET_HIGH:
-                print("IF 2")
-                target_edge_length *= (1 + rate_of_change)
-            else:
-                print("IF 3")
-        else:
-            print("IF 4")
-
-        # Update the previous vertex count
-        previous_vertex_count = current_vertex_count
-
-    current_mesh = meshSet.current_mesh()
-    mesh.set_params(
-        num_faces=current_mesh.vertex_number(),
-        num_vertices=current_mesh.face_number()
-    )
-    return mesh
-
 
 def translate_to_origin(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
     # apply filters
