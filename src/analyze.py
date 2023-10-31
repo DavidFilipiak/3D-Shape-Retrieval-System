@@ -9,7 +9,11 @@ from feature import descriptor_shape_list, descriptor_list
 #change weights here
 elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
 hist_weights = [0.3, 0.1, 0.2, 0.3, 0.1]
-common_weights = [0.4, 0.6]   # elem, hist with respect to each other
+common_weights = [0.4, 0.6]   # elem, hist with respect to each other.  [0.75, 0.25] means equal
+
+#weights = [1/20] * 20
+#elem_weights = weights[:15]
+#hist_weights = weights[15:]
 
 
 # basically an interface
@@ -168,7 +172,7 @@ def reduce_tsne(df):
                 X[j].extend(list(np.asarray(row) * hist_weights[i] * common_weights[1]))
 
     values = np.asarray(X, dtype=np.float64)
-    values_tsne = TSNE(n_components=2, perplexity=15, n_iter_without_progress=1000).fit_transform(values)
+    values_tsne = TSNE(n_components=2, perplexity=25, n_iter_without_progress=1000).fit_transform(values)
     df_tsne = pd.DataFrame(values_tsne, columns=['x', 'y'])
     df_tsne.insert(0, 'name', df['name'])
     df_tsne.insert(1, 'class_name', df['class_name'])

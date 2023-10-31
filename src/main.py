@@ -541,7 +541,7 @@ def do_query_naive_dist_weight():
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")), filetypes=[('Mesh files', '*.obj')])
     mesh_to_find = "/".join(filename.split("/")[-2:])
     if database.table_name != "distances.csv":
-        database.load_table("csv_files/distances_test.csv")
+        database.load_table("csv_files/distances.csv")
         current_csv_label.config(text=f"Current CSV: {database.table_name}")
     table = database.get_table()
     closest_meshes = naive_weighted_distances(mesh_to_find, table)

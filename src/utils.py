@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import mplcursors
 import random
 import itertools
 
@@ -186,14 +187,23 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    df_data = df_data.sort_values(by=['class_name'])
     classes = df_data['class_name'].unique()
     distinct_colors = ["#2f4f4f","#800000","#008000","#4b0082","#ff8c00","#ffff00","#00ff00","#00ffff","#0000ff","#ff00ff","#eee8aa","#6495ed","#ff69b4"]
     distinct_shapes = ["o", "v", "^", "s", "<", ">"]
     #classes = random.sample(list(classes), 20)
     #classes = ["HumanHead", "Helicopter"]
+    scatter = None
     for i, class_name in enumerate(classes):
         data = df_data.loc[df_data['class_name'] == class_name].iloc[:, 2:].values
-        plt.scatter(data[:, 0], data[:, 1], s=10, color=distinct_colors[i % len(distinct_colors)], marker=distinct_shapes[i % len(distinct_shapes)], edgecolors='black', linewidths=0.1)
+        color = distinct_colors[i % len(distinct_colors)]
+        shape = distinct_shapes[i % len(distinct_shapes)]
+        #with open('legend.txt', 'a') as f:
+        #    f.write(class_name + "," + color + "," + shape + "\n")
+        scatter = plt.scatter(data[:, 0], data[:, 1], s=10, color=color, marker=shape, edgecolors='black', linewidths=0.1)
+
+    mplcursors.cursor(scatter, hover=True, annotation_kwargs={'text': "name"})
+        #mplcursors.cursor(hover=True).connect("add", lambda sel: sel.annotation.set_text(classes[sel.target.index]))
 
     plt.legend(classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
     plt.show()
