@@ -27,7 +27,7 @@ def evaluate(df):
     results_df = pd.DataFrame(results_list, columns=['query shape', 'retrieved shapes'])
 
     # Save to CSV
-    results_df.to_csv('results.csv', index=False)
+    results_df.to_csv('evaluation_retrieval.csv', index=False)
 
 
 def compute_precision(key, matches):
