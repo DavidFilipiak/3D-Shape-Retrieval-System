@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 import math
 import polyscope as ps
+
+from EvaluationMetrics import evaluate
 from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
@@ -565,10 +567,13 @@ def do_query_naive_feature_weight():
     df2 = database.get_table()
 
     closest_meshes = naive_weighted_features(mesh_to_find, df1, df2)
+    counter = 0
     for mesh in closest_meshes:
+        counter += 1
         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
         ms.load_new_mesh(full_file)
         add_mesh_to_system(full_file)
+        ms.compute_matrix_from_translation(axisy=counter * 1)
         print(mesh)
     ms.show_polyscope()
 
@@ -589,13 +594,35 @@ def do_kdtree(dr_method):
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
 
     closest_meshes = get_kdtree(mesh_to_find, result, dr=dr_method)
+    counter = 0
+    meshes2 = []
     for mesh in closest_meshes:
+        counter+= 1
         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
         ms.load_new_mesh(full_file)
         add_mesh_to_system(full_file)
+        ms.compute_matrix_from_translation(axisy = counter*1)
         print(mesh)
-    ms.show_polyscope()
+        mesh = o3d.io.read_triangle_mesh(full_file)
+        mesh.compute_vertex_normals()
+        mesh.translate([counter * 1, 0, 0])
+        meshes2.append(mesh)
 
+    # Visualize the mesh
+    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+    #ms.show_polyscope()
+
+def do_evaluation():
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+    database.load_table(filename)
+    df1 = database.get_table()
+    filename = os.path.abspath(
+        os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
+    database.clear_table()
+    database.load_table(filename)
+    df2 = database.get_table()
+    result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
+    evaluate(result)
 
 def do_print_mesh():
     global curr_mesh
@@ -721,6 +748,9 @@ def main() -> None:
     standardizemenu.add_command(label="Standardize Hist. Desc.", command=do_standardize_histogram_feature)
     menubar.add_cascade(label="Standardize", menu=standardizemenu)
 
+    evaluationmenu = Menu(menubar, tearoff=0)
+    evaluationmenu.add_command(label="Evaluation", command=do_evaluation)
+    menubar.add_cascade(label="Evaluate", menu=evaluationmenu)
     root.config(menu=menubar)
 
     current_mesh_label = Label(root, text="Current mesh")

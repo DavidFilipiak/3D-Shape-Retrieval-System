@@ -129,4 +129,6 @@ def get_kdtree(mesh_to_find, result, dr="t-sne"):
     # Extract the names of the meshes corresponding to the indices
     filter_df = result.iloc[indices[0]]
     mesh_names = filter_df['name'].values
+    # if mesh_to_find in mesh_names:
+    #     mesh_names = np.delete(mesh_names, np.where(mesh_names == mesh_to_find))
     return [[name, dist] for name, dist in zip(mesh_names, distances[0])]
