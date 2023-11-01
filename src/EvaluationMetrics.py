@@ -1,4 +1,5 @@
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from src.query import get_kdtree
 
@@ -41,6 +42,103 @@ def compute_precision(key, matches):
     precision = matching_types / len(matches)
     return precision
 
+# def compute_accuracy(df):
+#     TP = 0
+#     FP = 0
+#     df['retrieved shapes'] = df['retrieved shapes'].apply(lambda x: ', '.join([i.split('/')[0] for i in x.split(', ')]))
+#
+#     for index, row in df.iterrows():
+#         query_class = row['query shape'].split('/')[0]
+#
+#         # List of classes for retrieved shapes
+#         retrieved_classes = [shape.split('/')[0] for shape in row['retrieved shapes'].split(', ')]
+#
+#         # Calculate TP
+#         TP += retrieved_classes.count(query_class)
+#
+#         # Calculate FP (needed for TN calculation)
+#         FP += len(retrieved_classes) - retrieved_classes.count(query_class)
+#     total_query_class = df['query shape'].str.count(query_class).sum()
+#     FN = total_query_class - TP
+#     # Calculate TN (assuming you have the total number of each class in the database)
+#
+#     # Total possible retrievals - (TP + FP + FN)
+#     TN = 5 * df.shape[0] - TP - FP - FN
+#     return TP, TN
 
-# for key, matches in data.items():
-#     print(f"Precision for {key}: {compute_precision(key, matches)}")
+
+def compute_metrics_for_class(df, query_class):
+    TP = 0
+    FP = 0
+    FN = 0
+    TN = 0
+    for index, row in df.iterrows():
+        if(row['query shape'].split('/')[0] != query_class):
+            continue
+        total_query_class = df['query shape'].str.count(query_class).sum()
+        # List of classes for retrieved shapes
+        retrieved_classes = [shape.split('/')[0] for shape in row['retrieved shapes'].split(', ')]
+        # Calculate TP
+        TP = retrieved_classes.count(query_class)
+        # Calculate FP
+        FP = len(retrieved_classes) - retrieved_classes.count(query_class)
+
+        # Calculate FN
+        FN = total_query_class - TP
+        # Calculate TN
+        TN = df.shape[0] - 5 - FP
+    # Total occurrences of the query class in the dataset
+
+
+    return TP, FN, FP, TN
+
+def compute_accuracy(df):
+    df['retrieved shapes'] = df['retrieved shapes'].apply(lambda x: ', '.join([i.split('/')[0] for i in x.split(', ')]))
+
+    # Extract unique query classes
+    unique_query_classes = df['query shape'].apply(lambda x: x.split('/')[0]).unique()
+
+    # Compute metrics for each unique class
+    results = {}
+    for query_class in unique_query_classes:
+        TP, FN, FP, TN = compute_metrics_for_class(df, query_class)
+        print(f"accuracy for class {query_class} is {(TP + TN) / (TP + TN + FP + FN)}")
+        print(f"precision for class {query_class} is {TP / (TP + FP)}")
+        print(f"recall for class {query_class} is {TP / (TP + FN)}")
+        print(f"f1 for class {query_class} is {2 * TP / (2 * TP + FP + FN)}")
+        results[query_class] = {
+            'TP': TP,
+            'FN': FN,
+            'FP': FP,
+            'TN': TN,
+            'Accuracy': (TP + TN) / (TP + TN + FP + FN),
+            'Precision': TP / (TP + FP),
+            'Recall': TP / (TP + FN),
+            'F1': 2 * TP / (2 * TP + FP + FN)
+        }
+    # Convert results dictionary to DataFrame
+    results_df = pd.DataFrame.from_dict(results, orient='index')
+
+    # Sort by F1 scores in descending order
+    sorted_df = results_df.sort_values(by='F1', ascending=False)
+    plot_perclass_metrics(results, "Precision")
+    plot_perclass_metrics(results, "Recall")
+    plot_perclass_metrics(results, "F1")
+    plot_perclass_metrics(results, "Accuracy")
+    return results
+
+def plot_perclass_metrics(data_dict, title):
+    # Plot histogram
+    labels = list(data_dict.keys())
+    values = [data[title] for data in data_dict.values()]
+    items = [(label, value) for label, value in zip(labels, values)]
+    items.sort(key=lambda x: x[1])
+    labels = [label for label, _ in items]
+    values = [value for _, value in items]
+    plt.bar(labels, values, color ='maroon',
+        width = 0.7)
+    plt.xlabel("Classes")
+    plt.xticks(rotation=90)
+    plt.ylabel(title)
+    plt.title(f"{title} per class")
+    plt.show()
