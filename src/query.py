@@ -121,7 +121,7 @@ def get_kdtree(mesh_to_find, result, dr="t-sne"):
 
     # Build KDTree from df2
     tree = KDTree(values)
-
+    #pickle kd tree
     # Let's get the top 5 closest neighbors for demonstration
     mesh_idx = result[result['name'] == mesh_to_find].index.values[0]
     distances, indices = tree.query([values[mesh_idx]], k=6)

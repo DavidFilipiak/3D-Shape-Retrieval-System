@@ -1,4 +1,5 @@
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from src.query import get_kdtree
 
@@ -74,18 +75,21 @@ def compute_metrics_for_class(df, query_class):
     for index, row in df.iterrows():
         if(row['query shape'].split('/')[0] != query_class):
             continue
+        total_query_class = df['query shape'].str.count(query_class).sum()
         # List of classes for retrieved shapes
         retrieved_classes = [shape.split('/')[0] for shape in row['retrieved shapes'].split(', ')]
         # Calculate TP
-        TP += retrieved_classes.count(query_class)
+        TP = retrieved_classes.count(query_class)
         # Calculate FP
-        FP += len(retrieved_classes) - retrieved_classes.count(query_class)
+        FP = len(retrieved_classes) - retrieved_classes.count(query_class)
+
+        # Calculate FN
+        FN = total_query_class - TP
+        # Calculate TN
+        TN = df.shape[0] - 5 - FP
     # Total occurrences of the query class in the dataset
-    total_query_class = df['query shape'].str.count(query_class).sum()
-    # Calculate FN
-    FN = (5 * total_query_class - 1) - TP
-    # Calculate TN
-    TN = 5 * df.shape[0] - TP - FP - FN
+
+
     return TP, FN, FP, TN
 
 def compute_accuracy(df):
@@ -117,4 +121,24 @@ def compute_accuracy(df):
 
     # Sort by F1 scores in descending order
     sorted_df = results_df.sort_values(by='F1', ascending=False)
+    plot_perclass_metrics(results, "Precision")
+    plot_perclass_metrics(results, "Recall")
+    plot_perclass_metrics(results, "F1")
+    plot_perclass_metrics(results, "Accuracy")
     return results
+
+def plot_perclass_metrics(data_dict, title):
+    # Plot histogram
+    labels = list(data_dict.keys())
+    values = [data[title] for data in data_dict.values()]
+    items = [(label, value) for label, value in zip(labels, values)]
+    items.sort(key=lambda x: x[1])
+    labels = [label for label, _ in items]
+    values = [value for _, value in items]
+    plt.bar(labels, values, color ='maroon',
+        width = 0.7)
+    plt.xlabel("Classes")
+    plt.xticks(rotation=90)
+    plt.ylabel(title)
+    plt.title(f"{title} per class")
+    plt.show()
