@@ -9,7 +9,7 @@ import numpy as np
 import math
 import polyscope as ps
 
-from EvaluationMetrics import evaluate
+from EvaluationMetrics import evaluate, compute_accuracy
 from mesh import Mesh, meshes
 from feature import feature_list
 from database import Database
@@ -623,7 +623,11 @@ def do_evaluation():
     df2 = database.get_table()
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
     evaluate(result)
-
+def do_accuracy():
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "evaluation_retrieval.csv"))
+    database.load_table(filename)
+    df = database.get_table()
+    accuracy_dic = compute_accuracy(df)
 def do_print_mesh():
     global curr_mesh
     current_mesh = ms.current_mesh()
@@ -750,6 +754,7 @@ def main() -> None:
 
     evaluationmenu = Menu(menubar, tearoff=0)
     evaluationmenu.add_command(label="Evaluation", command=do_evaluation)
+    evaluationmenu.add_command(label="Compute metrics", command=do_accuracy)
     menubar.add_cascade(label="Evaluate", menu=evaluationmenu)
     root.config(menu=menubar)
 
