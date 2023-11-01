@@ -194,17 +194,21 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
     #classes = random.sample(list(classes), 20)
     #classes = ["HumanHead", "Helicopter"]
     scatter = None
+    #show_classes = ["Bicycle", "Sign"]
+    show_classes = classes
     for i, class_name in enumerate(classes):
         data = df_data.loc[df_data['class_name'] == class_name].iloc[:, 2:].values
         color = distinct_colors[i % len(distinct_colors)]
         shape = distinct_shapes[i % len(distinct_shapes)]
         #with open('legend.txt', 'a') as f:
         #    f.write(class_name + "," + color + "," + shape + "\n")
-        scatter = plt.scatter(data[:, 0], data[:, 1], s=10, color=color, marker=shape, edgecolors='black', linewidths=0.1)
+        if class_name in show_classes:
+            scatter = plt.scatter(data[:, 0], data[:, 1], s=10, color=color, marker=shape, edgecolors='black', linewidths=0.1)
 
     mplcursors.cursor(scatter, hover=True, annotation_kwargs={'text': "name"})
         #mplcursors.cursor(hover=True).connect("add", lambda sel: sel.annotation.set_text(classes[sel.target.index]))
 
-    plt.legend(classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
+    #plt.legend(classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
+    plt.legend(show_classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
     plt.show()
     return fig
