@@ -52,23 +52,26 @@ def main():
         for _, row in result.iterrows():
             query_shape = row['name']
             query_class = query_shape.split('/')[0]
-            query_size = class_counts[query_class]
+            class_size = class_counts[query_class]
             # retrieved_shapes
             distances, indices = tree.query(values[row.name:row.name + 1], k=i)
             retrieved_shapes = result.iloc[indices[0]]['name'].values
             retrieved_classes = [shape.split('/')[0] for shape in retrieved_shapes]
-            metrics = calculate_metrics(result, retrieved_classes, query_size)
+            metrics = calculate_metrics(result, retrieved_classes, class_size)
             metrics_array[row.name, i, :] = metrics
+
+    np.save("metrics.npy", metrics_array)
+    print("FINISHED")
+
 # Function to calculate metrics
 def calculate_metrics(result, retrieved_classes, total_query_class=0):
     TP = retrieved_classes.count(retrieved_classes)
     # Calculate FP
-    FP = len(retrieved_classes) - retrieved_classes.count(retrieved_classes)
-
+    FP = len(retrieved_classes) - TP
     # Calculate FN
     FN = total_query_class - TP
     # Calculate TN
-    TN = result.shape[0] - 5 - FP
+    TN = result.shape[0] - total_query_class - FP
     Accuracy = (TP + TN) / (TP + TN + FP + FN) if (TP + TN + FP + FN) > 0 else 0
     Precision = TP / (TP + FP) if (TP + FP) > 0 else 0
     Recall = TP / (TP + FN) if (TP + FN) > 0 else 0
