@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import json
 from src.main import current_dir
 from scipy.stats import wasserstein_distance
 import pandas as pd
@@ -7,15 +8,16 @@ from database import Database
 from feature import descriptor_list, descriptor_shape_list
 
 
-elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
+# volume,surface_area,eccentricity,compactness,rectangularity,diameter,aabb_volume,convexivity,ch_volume,ch_surface_area,ch_eccentricity,ch_compactness,ch_rectangularity,ch_diameter,ch_aabb_volume
+#elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
+elem_weights = [0, 1/15, 1/15, 0, 0, 1/15, 1/15, 0, 1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
 hist_weights = [0.3, 0.1, 0.2, 0.3, 0.1]
-common_weights = [0.6, 0.4]   # elem, hist with respect to each other
+common_weights = [0.35, 0.65]   # elem, hist with respect to each other.  [0.75, 0.25] means equal
 
 
 def calculate_euclidean_distances(df,object_id):
     #assign weights to the dataframe
-    weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
-    df.iloc[:, 2:] = df.iloc[:, 2:].mul(weights)
+    df.iloc[:, 2:] = df.iloc[:, 2:].mul(elem_weights)
     # Create a new DataFrame to store the distances
     distances_df = pd.DataFrame(columns=['Name', 'Eucl_Distance'])
     object_features = df.loc[df['name'] == object_id].iloc[:, 2:].values
@@ -41,8 +43,7 @@ def get_euclidean_distance(vec_a, vec_b, range_min, range_max, normalize=True):
 
 def get_emd(df, query_object):
     #assign weights to the dataframe
-    weights = [0.3, 0.1, 0.2, 0.3, 0.1]
-    df.iloc[:, 2:] = df.iloc[:, 2:].mul(weights)
+    df.iloc[:, 2:] = df.iloc[:, 2:].mul(hist_weights)
     distances_df = pd.DataFrame(columns=['Name', 'a3_distance', 'd1', 'd2', 'd3', 'd4'])
     object_features = df.loc[df['name'] == query_object].iloc[:, 2:].values[0]
     query_data = []
@@ -130,10 +131,16 @@ def main()->None:
     df2 = database.get_table()
     result = pd.merge(df, df2, on='name', how='inner')
     final_result = calc_pairwise_distances(result)
+    final_result = final_result.sort_values(by=['name1', 'name2'], ignore_index=True)
 
     database.clear_table()
-    database.add_table(final_result, "distances_test")
-    database.save_table(os.path.abspath(os.path.join(current_dir, "csv_files", "distances_test.csv")))
+    database.add_table(final_result, "distances2")
+    database.save_table(os.path.abspath(os.path.join(current_dir, "csv_files", "distances2.csv")))
+
+    # to distance matrix
+    dist_matrix = final_result.pivot(index='name1', columns='name2', values='dist').to_numpy()
+    np.save("dist_matrix.npy", dist_matrix)
+    np.savetxt("csv_files/dist_matrix.csv", dist_matrix, delimiter=",")
 
     #similar_objects_eucl_df = calculate_euclidean_distances(df, "AircraftBuoyant/m1337.obj")
 
@@ -141,5 +148,24 @@ def main()->None:
     #final_result = pd.merge(similar_objects_eucl_df, similar_objects_emd_df, on='Name', how='inner')
     print("FINISHED")
     # Display the result
+
+
+def make_mapper():
+    database = Database()
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "aaaaaaaaaaall_desc_standardized.csv"))
+    database.load_table(filename)
+    df = database.get_table()
+    shapes_df = df.sort_values(by="name")["name"].values
+    # get indexes and value tuples
+    shapes = {}
+    for i in range(len(shapes_df)):
+        shapes[shapes_df[i]] = i
+
+    json.dump(shapes, open("shape2idx.json", "w"))
+
+
+
 if __name__ == "__main__":
-    main()
+    #main()
+    #make_mapper()
+    pass

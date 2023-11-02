@@ -5,6 +5,7 @@ import math
 from sklearn.manifold import TSNE
 from utils import flatten_nested_array
 from feature import descriptor_shape_list, descriptor_list
+import json
 
 #change weights here
 # volume,surface_area,eccentricity,compactness,rectangularity,diameter,aabb_volume,convexivity,ch_volume,ch_surface_area,ch_eccentricity,ch_compactness,ch_rectangularity,ch_diameter,ch_aabb_volume
@@ -180,6 +181,18 @@ def reduce_tsne(df):
     df_tsne.insert(1, 'class_name', df['class_name'])
     return df_tsne
 
+
+def reduce_tsne_from_dist_matrix(matrix):
+    values_tsne = TSNE(n_components=2, perplexity=20, n_iter_without_progress=1000, metric="precomputed", init="random").fit_transform(matrix)
+    df_tsne = pd.DataFrame(values_tsne, columns=['x', 'y'])
+    df_tsne.insert(0, 'name', "")
+    df_tsne.insert(1, 'class_name', "")
+    mapping = json.load(open("shape2idx.json", "r"))
+    for name, index in mapping.items():
+        class_name = name.split("/")[0]
+        df_tsne.at[index, 'name'] = name
+        df_tsne.at[index, 'class_name'] = class_name
+    return df_tsne
 
 
 

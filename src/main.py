@@ -357,15 +357,22 @@ def do_analyze_current_mesh(feature):
         hist_y, hist_x = np.histogram(face_areas, bins=math.ceil(math.sqrt(len(face_areas))))
         draw_histogram(hist_x[:-1], hist_y, 0, MAX, xlabel='Face area', ylabel='Number of faces')
 
-def do_analyze_dr():
-    hist_path = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
-    elem_path = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
-    database.load_table(elem_path)
-    table_elem = database.get_table()
-    database.load_table(hist_path)
-    table_hist = database.get_table()
-    table = pd.merge(table_elem, table_hist, on=["name","class_name"])
-    df_tsne = reduce_tsne(table)
+# method = "default" or "custom"
+def do_analyze_dr(method="default"):
+    if method == "default":
+        hist_path = os.path.abspath(os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
+        elem_path = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+        database.load_table(elem_path)
+        table_elem = database.get_table()
+        database.load_table(hist_path)
+        table_hist = database.get_table()
+        table = pd.merge(table_elem, table_hist, on=["name","class_name"])
+        df_tsne = reduce_tsne(table)
+    elif method == "custom":
+        distance_matrix = np.load("dist_matrix.npy")
+        df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+    else:
+        raise Exception("Invalid method")
     draw_scatterplot(df_tsne)
 
 
@@ -542,8 +549,8 @@ def do_standardize_histogram_feature():
 def do_query_naive_dist_weight():
     filename = filedialog.askopenfilename(title="Mesh select", initialdir=os.path.abspath(os.path.join(current_dir, "..", "db")), filetypes=[('Mesh files', '*.obj')])
     mesh_to_find = "/".join(filename.split("/")[-2:])
-    if database.table_name != "distances.csv":
-        database.load_table("csv_files/distances.csv")
+    if database.table_name != "distances2.csv":
+        database.load_table("csv_files/distances2.csv")
         current_csv_label.config(text=f"Current CSV: {database.table_name}")
     table = database.get_table()
     closest_meshes = naive_weighted_distances(mesh_to_find, table)
@@ -715,7 +722,8 @@ def main() -> None:
         descriptormenu.add_command(label=descriptor, command=lambda d=descriptor: analyze_feature(d))
     analyzemenu.add_cascade(label="All descriptors (.csv)", menu=descriptormenu)
     drmenu = Menu(analyzemenu, tearoff=0)
-    drmenu.add_command(label="t-SNE", command=do_analyze_dr)
+    drmenu.add_command(label="t-SNE (Euclidean)", command=lambda: do_analyze_dr("default"))
+    drmenu.add_command(label="t-SNE (Custom)", command=lambda: do_analyze_dr("custom"))
     analyzemenu.add_cascade(label="Dimensionality Reduction", menu=drmenu)
 
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
