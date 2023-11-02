@@ -14,7 +14,7 @@ def evaluate(df):
     results_list = []
     for _, row in df.iterrows():
         id = row['name']
-        result = get_kdtree(id, df, dr="t-sne")
+        result = get_kdtree(id, df, dr="t-sne",method = "custom")
         print(f"retrieved nearest neighbors for{id}")
         # Converting the result to the desired format
         query_shape = result[0][0]
@@ -42,29 +42,6 @@ def compute_precision(key, matches):
     precision = matching_types / len(matches)
     return precision
 
-# def compute_accuracy(df):
-#     TP = 0
-#     FP = 0
-#     df['retrieved shapes'] = df['retrieved shapes'].apply(lambda x: ', '.join([i.split('/')[0] for i in x.split(', ')]))
-#
-#     for index, row in df.iterrows():
-#         query_class = row['query shape'].split('/')[0]
-#
-#         # List of classes for retrieved shapes
-#         retrieved_classes = [shape.split('/')[0] for shape in row['retrieved shapes'].split(', ')]
-#
-#         # Calculate TP
-#         TP += retrieved_classes.count(query_class)
-#
-#         # Calculate FP (needed for TN calculation)
-#         FP += len(retrieved_classes) - retrieved_classes.count(query_class)
-#     total_query_class = df['query shape'].str.count(query_class).sum()
-#     FN = total_query_class - TP
-#     # Calculate TN (assuming you have the total number of each class in the database)
-#
-#     # Total possible retrievals - (TP + FP + FN)
-#     TN = 5 * df.shape[0] - TP - FP - FN
-#     return TP, TN
 
 
 def compute_metrics_for_class(df, query_class):
@@ -142,3 +119,5 @@ def plot_perclass_metrics(data_dict, title):
     plt.ylabel(title)
     plt.title(f"{title} per class")
     plt.show()
+
+
