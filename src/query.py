@@ -1,11 +1,12 @@
+import pickle
+
 import pandas as pd
 import numpy as np
 from scipy.stats import wasserstein_distance
 from feature import descriptor_list, descriptor_shape_list
 from utils import flatten_nested_array
 from sklearn.neighbors import KDTree
-from analyze import reduce_tsne
-
+from analyze import reduce_tsne, reduce_tsne_from_dist_matrix
 
 #change weights here
 elem_weights = [0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,0.5/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15,1.5714285714/15]
@@ -95,10 +96,15 @@ def naive_weighted_distances(mesh_name, df, n=5):
 
 
 # dr = "none" | "t-sne" | "umap"
-def get_kdtree(mesh_to_find, result, dr="t-sne"):
+def get_kdtree(mesh_to_find, result, dr="t-sne", method = "default",query_size = 5):
     if dr == "t-sne":
-        df_tsne = reduce_tsne(result)
-        values = df_tsne.iloc[:, 2:].to_numpy()
+        if (method == "default"):
+            df_tsne = reduce_tsne(result)
+            values = df_tsne.iloc[:, 2:].to_numpy()
+        else:
+            distance_matrix = np.load("distance_matrix.npy")
+            df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+            values = df_tsne.iloc[:, 2:].to_numpy()
     elif dr == "umap":
         # maybe in the future???
         values = np.zeros(1)
@@ -119,12 +125,14 @@ def get_kdtree(mesh_to_find, result, dr="t-sne"):
 
         values = np.asarray(X, dtype=np.float64)
 
-    # Build KDTree from df2
-    tree = KDTree(values)
-    #pickle kd tree
+    #tree = KDTree(values)
+    with open('tree.pickle', 'rb') as file_handle:
+        tree = pickle.load(file_handle)
+    # with open('tree.pickle', 'wb') as file_handle:
+    #     pickle.dump(tree, file_handle)
     # Let's get the top 5 closest neighbors for demonstration
     mesh_idx = result[result['name'] == mesh_to_find].index.values[0]
-    distances, indices = tree.query([values[mesh_idx]], k=6)
+    distances, indices = tree.query([values[mesh_idx]], k=query_size)
 
     # Extract the names of the meshes corresponding to the indices
     filter_df = result.iloc[indices[0]]
