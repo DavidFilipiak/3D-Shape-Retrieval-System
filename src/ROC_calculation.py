@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from src.analyze import reduce_tsne_from_dist_matrix, reduce_tsne
 from src.database import Database
+from sklearn.neighbors import KDTree
+import json
 
 
 def main():
@@ -18,15 +20,26 @@ def main():
     database.load_table(filename)
     df2 = database.get_table()
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
-    result = result.sort_values(by=['name'])
+    result = result.sort_values(by=['name'], ignore_index=True)
 
     class_counts = result['name'].str.split('/').str[0].value_counts().to_dict()
 
-    #distance_matrix = np.load("dist_matrix.npy")
+    # Metrics with volume (saved kd-tree)
     df_tsne = reduce_tsne(result)
     values = df_tsne.iloc[:, 2:].to_numpy()
-    with open('tree.pickle', 'rb') as file_handle:
-        tree = pickle.load(file_handle)
+    tree = KDTree(values)
+    #with open('tree.pickle', 'rb') as file_handle:
+    #    tree = pickle.load(file_handle)
+
+    # Metrics with volume (saved distance matrix) Don't delete PLS :3
+    #distance_matrix = np.load("dist_matrix.npy")
+    #shape2idx = json.load(open("shape2idx.json", "r"))
+    #bad_quadruped_index = shape2idx["Quadruped/m94.obj"]
+    #distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 0)
+    #distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 1)
+    #df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+    #values = df_tsne.iloc[:, 2:].to_numpy()
+    #tree = KDTree(values)
 
     # Metrics
     metrics_dict = {
@@ -52,27 +65,28 @@ def main():
     for i in query_sizes:
         for _, row in result.iterrows():
             query_shape = row['name']
+            print(i, query_shape)
             query_class = query_shape.split('/')[0]
             class_size = class_counts[query_class]
             # retrieved_shapes
             distances, indices = tree.query(values[row.name:row.name + 1], k=i)
             retrieved_shapes = result.iloc[indices[0]]['name'].values
             retrieved_classes = [shape.split('/')[0] for shape in retrieved_shapes]
-            metrics = calculate_metrics(result, retrieved_classes, class_size)
+            metrics = calculate_metrics(result, retrieved_classes, query_class, class_size)
             metrics_array[row.name, query_size_mapper[i], :] = metrics
 
     np.save("metrics.npy", metrics_array)
     print("FINISHED")
 
 # Function to calculate metrics
-def calculate_metrics(result, retrieved_classes, total_query_class=0):
-    TP = retrieved_classes.count(retrieved_classes)
+def calculate_metrics(result, retrieved_classes, query_class, query_class_size=0):
+    TP = retrieved_classes.count(query_class)
     # Calculate FP
     FP = len(retrieved_classes) - TP
     # Calculate FN
-    FN = total_query_class - TP
+    FN = query_class_size - TP
     # Calculate TN
-    TN = result.shape[0] - total_query_class - FP
+    TN = result.shape[0] - query_class_size - FP
     Accuracy = (TP + TN) / (TP + TN + FP + FN) if (TP + TN + FP + FN) > 0 else 0
     Precision = TP / (TP + FP) if (TP + FP) > 0 else 0
     Recall = TP / (TP + FN) if (TP + FN) > 0 else 0

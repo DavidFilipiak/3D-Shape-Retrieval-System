@@ -190,6 +190,8 @@ def reduce_tsne_from_dist_matrix(matrix):
     mapping = json.load(open("shape2idx.json", "r"))
     for name, index in mapping.items():
         class_name = name.split("/")[0]
+        if len(df_tsne) == 2477 and index >= 1845:  # this setting is for a dataframe without quadruped/m94
+            index -= 1
         df_tsne.at[index, 'name'] = name
         df_tsne.at[index, 'class_name'] = class_name
     return df_tsne
