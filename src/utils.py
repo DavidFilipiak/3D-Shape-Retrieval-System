@@ -183,7 +183,7 @@ def reshape_to_square_matrix(arr):
 def draw_scatterplot(df_data, x_label="", y_label="", title=""):
     plt.rcParams["figure.figsize"] = [13, 6]
     plt.rcParams["figure.autolayout"] = True
-    fig = plt.figure(1)
+    fig, ax = plt.subplots()
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -202,10 +202,12 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
         shape = distinct_shapes[i % len(distinct_shapes)]
         #with open('legend.txt', 'a') as f:
         #    f.write(class_name + "," + color + "," + shape + "\n")
+
         if class_name in show_classes:
             scatter = plt.scatter(data[:, 0], data[:, 1], s=10, color=color, marker=shape, edgecolors='black', linewidths=0.1)
 
-    mplcursors.cursor(scatter, hover=True, annotation_kwargs={'text': "name"})
+
+            mplcursors.cursor(scatter, hover=True, annotation_kwargs={'text': "name"})
         #mplcursors.cursor(hover=True).connect("add", lambda sel: sel.annotation.set_text(classes[sel.target.index]))
 
     #plt.legend(classes, loc='upper left', ncols=3, bbox_to_anchor=(1, 1))
