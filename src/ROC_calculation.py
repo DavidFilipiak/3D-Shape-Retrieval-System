@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-from src.analyze import reduce_tsne_from_dist_matrix
+from src.analyze import reduce_tsne_from_dist_matrix, reduce_tsne
 from src.database import Database
 
 
@@ -22,8 +22,8 @@ def main():
 
     class_counts = result['name'].str.split('/').str[0].value_counts().to_dict()
 
-    distance_matrix = np.load("dist_matrix.npy")
-    df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+    #distance_matrix = np.load("dist_matrix.npy")
+    df_tsne = reduce_tsne(result)
     values = df_tsne.iloc[:, 2:].to_numpy()
     with open('tree.pickle', 'rb') as file_handle:
         tree = pickle.load(file_handle)
@@ -42,6 +42,7 @@ def main():
         "Specificity": 9
     }
     query_sizes = range(1, 101, 5)  # Assuming these are the sizes we are interested in
+    query_size_mapper = {val: i for i, val in enumerate(query_sizes)}
     # Initialize the 3D array for storing metrics
     num_shapes = result.shape[0]
     num_sizes = len(query_sizes)
@@ -58,7 +59,7 @@ def main():
             retrieved_shapes = result.iloc[indices[0]]['name'].values
             retrieved_classes = [shape.split('/')[0] for shape in retrieved_shapes]
             metrics = calculate_metrics(result, retrieved_classes, class_size)
-            metrics_array[row.name, i, :] = metrics
+            metrics_array[row.name, query_size_mapper[i], :] = metrics
 
     np.save("metrics.npy", metrics_array)
     print("FINISHED")
