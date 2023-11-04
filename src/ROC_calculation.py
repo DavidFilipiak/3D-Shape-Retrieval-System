@@ -28,21 +28,21 @@ def main():
     class_counts = result['name'].str.split('/').str[0].value_counts().to_dict()
 
     # Metrics with volume (saved kd-tree)
-    df_tsne = reduce_tsne(result)
-    values = df_tsne.iloc[:, 2:].to_numpy()
-    tree = KDTree(values)
+    #df_tsne = reduce_tsne(result)
+    #values = df_tsne.iloc[:, 2:].to_numpy()
+    #tree = KDTree(values)
     #with open('tree.pickle', 'rb') as file_handle:
     #    tree = pickle.load(file_handle)
 
     # Metrics with volume (saved distance matrix) Don't delete PLS :3
-    #distance_matrix = np.load("dist_matrix.npy")
-    #shape2idx = json.load(open("shape2idx.json", "r"))
-    #bad_quadruped_index = shape2idx["Quadruped/m94.obj"]
-    #distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 0)
-    #distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 1)
-    #df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
-    #values = df_tsne.iloc[:, 2:].to_numpy()
-    #tree = KDTree(values)
+    distance_matrix = np.load("dist_matrix.npy")
+    shape2idx = json.load(open("shape2idx.json", "r"))
+    bad_quadruped_index = shape2idx["Quadruped/m94.obj"]
+    distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 0)
+    distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 1)
+    df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+    values = df_tsne.iloc[:, 2:].to_numpy()
+    tree = KDTree(values)
 
     # Metrics
     metrics_dict = {
@@ -78,10 +78,10 @@ def main():
             metrics = calculate_metrics(result, retrieved_classes, query_class, class_size)
             metrics_array[row.name, query_size_mapper[i], :] = metrics
 
-    np.save("metrics_more_classes.npy", metrics_array)
+    np.save("metrics-all.npy", metrics_array)
 
     #metrics_array = np.load("metrics-best.npy")
-    plot_overall_average_sensitivity_specificity(metrics_array, metrics_dict, num_sizes)
+    #plot_overall_average_sensitivity_specificity(metrics_array, metrics_dict, num_sizes)
 
     print("FINISHED")
 
@@ -164,9 +164,86 @@ def calculate_metrics(result, retrieved_classes, query_class, query_class_size=0
 
     return [TP, FN, FP, TN, Accuracy, Precision, Recall, F1, Sensitivity, Specificity]
 
+def custom_eval():
+    metrics = np.load("metrics-best.npy")
+    print(metrics.shape)
+    metrics_dict = {"TP": 0,"FN": 1,"FP": 2,"TN": 3,"Accuracy": 4,"Precision": 5,"Recall": 6,"F1": 7,"Sensitivity": 8,"Specificity": 9}
+    query_sizes = range(1, 101, 5)  # Assuming these are the sizes we are interested in
+    query_size_mapper = {val: i for i, val in enumerate(query_sizes)}
+    old_shape2idx = json.load(open("shape2idx.json", "r"))
+    bad_quadruped_index = old_shape2idx["Quadruped/m94.obj"]
+    shape2idx = dict()
+    for i, (name, _) in enumerate(old_shape2idx.items()):
+        if i < bad_quadruped_index:
+            shape2idx[name] = i
+        elif i > bad_quadruped_index:
+            shape2idx[name] = i - 1
+    classes = sorted(list(set([name.split("/")[0] for name in shape2idx.keys()])))
+
+    # Plot custom histograms - TWO out of THREE following variables must be filled in, the third one can must be None
+    # None in this case means ALL values of that variable
+    class_name = "HumanHead"
+    query_size = None
+    metric = "F1"
+
+    if not class_name:
+        class_indexes = list(range(0, 2477))
+    else:
+        class_indexes = \
+        list(
+            map(lambda item: item[1],
+                filter(
+                    lambda item: item[0].split("/")[0] == class_name,
+                    shape2idx.items()
+                )
+            )
+        )
+
+    if not query_size:
+        query_size_indexes = list(query_size_mapper.values())
+    else:
+        query_size_indexes = [query_size_mapper[query_size]]
+
+    if not metric:
+        metric_indexes = list(metrics_dict.values())
+    else:
+        metric_indexes = [metrics_dict[metric]]
+
+    matrix_window = metrics[
+                        min(class_indexes):max(class_indexes)+1,
+                        min(query_size_indexes):max(query_size_indexes)+1,
+                        min(metric_indexes):max(metric_indexes)+1]
+
+    matrix_window = np.squeeze(matrix_window)
+    if class_name:
+        matrix_window = np.mean(matrix_window, axis=0)
+    else:
+        df = pd.DataFrame({"class_name": [key.split("/")[0] for key in shape2idx.keys()], "value": list(matrix_window)})
+        df = df.groupby("class_name").mean()
+        matrix_window = df["value"].to_numpy()
+
+
+    if not class_name:
+        plt.title("Histogram of all classes")
+        plt.bar([i for i in range(len(matrix_window))], matrix_window)
+        plt.xticks([i for i in range(len(classes))], classes, rotation=90)
+    elif not query_size:
+        plt.title(f"Histogram of class {class_name}")
+        plt.bar([i for i in range(len(matrix_window))], matrix_window)
+        plt.xticks([query_size_mapper[i] for i in query_sizes] ,query_sizes, rotation=50)
+    elif not metric:
+        plt.title(f"Histogram of query size {query_size}")
+        plt.bar([i for i in range(len(matrix_window))][4:], matrix_window[4:])
+        plt.xticks([i for i in range(len(metrics_dict))][4:], list(metrics_dict.keys())[4:], rotation=50)
+
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
-    main()
+    #main()
+    custom_eval()
 
 
 

@@ -195,8 +195,8 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
     #classes = random.sample(list(classes), 20)
     #classes = ["HumanHead", "Helicopter"]
     scatter = None
-    #show_classes = ["Bicycle", "Sign"]
-    show_classes = classes
+    show_classes = ["Bicycle", "Car", "Fish", "HumanHead"]
+    #show_classes = classes
     for i, class_name in enumerate(classes):
         data = df_data.loc[df_data['class_name'] == class_name].iloc[:, 2:].values
         names = df_data.loc[df_data['class_name'] == class_name].iloc[:, 0].values
