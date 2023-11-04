@@ -57,7 +57,7 @@ def main():
         "Sensitivity": 8,
         "Specificity": 9
     }
-    query_sizes = range(1, 143, 1)  # Assuming these are the sizes we are interested in
+    query_sizes = range(1, 2477, 1)  # Assuming these are the sizes we are interested in
     query_size_mapper = {val: i for i, val in enumerate(query_sizes)}
     # Initialize the 3D array for storing metrics
     num_shapes = result.shape[0]
