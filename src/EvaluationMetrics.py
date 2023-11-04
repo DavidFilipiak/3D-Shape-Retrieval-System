@@ -5,9 +5,6 @@ from src.query import get_kdtree
 
 
 def evaluate(df):
-    M_avg = 0  # overall average quality for entire database.
-    M = 0  # average quality values for all class labels. M(C) = average quality value for class C
-
     print(f"currently processing mesh with name{df['name']}")
     dfclass_sizes = df.groupby('class_name').size()
     # This will store your results in the format: [[query_shape, retrieved_shapes], ...]
@@ -31,16 +28,6 @@ def evaluate(df):
     results_df.to_csv('evaluation_retrieval.csv', index=False)
 
 
-def compute_precision(key, matches):
-    # Extract the type of the key
-    query_type = key.split("/")[0]
-
-    # Count how many matches have the same type as the query
-    matching_types = sum(1 for match in matches if match[0].split("/")[0] == query_type)
-
-    # Compute precision
-    precision = matching_types / len(matches)
-    return precision
 
 
 
@@ -98,26 +85,33 @@ def compute_accuracy(df):
 
     # Sort by F1 scores in descending order
     sorted_df = results_df.sort_values(by='F1', ascending=False)
-    plot_perclass_metrics(results, "Precision")
-    plot_perclass_metrics(results, "Recall")
-    plot_perclass_metrics(results, "F1")
-    plot_perclass_metrics(results, "Accuracy")
-    return results
+    plot_perclass_metrics(results_df, "Precision")
+    plot_perclass_metrics(results_df, "Recall")
+    plot_perclass_metrics(results_df, "F1")
+    plot_perclass_metrics(results_df, "Accuracy")
+    return results_df
 
-def plot_perclass_metrics(data_dict, title):
-    # Plot histogram
-    labels = list(data_dict.keys())
-    values = [data[title] for data in data_dict.values()]
-    items = [(label, value) for label, value in zip(labels, values)]
-    items.sort(key=lambda x: x[1])
-    labels = [label for label, _ in items]
-    values = [value for _, value in items]
-    plt.bar(labels, values, color ='maroon',
-        width = 0.7)
+
+def plot_perclass_metrics(df, title):
+    # Ensure title is a valid column name
+    if title not in df.columns:
+        raise ValueError(f"{title} is not a column in the DataFrame")
+
+    # Sort the DataFrame based on the title column
+    df_sorted = df.sort_values(by=title)
+
+    # Get the labels and values
+    labels = df_sorted.index.tolist()
+    values = df_sorted[title].tolist()
+
+    # Plot the bar chart
+    plt.figure(figsize=(10, 8))  # You can adjust the figure size to fit your needs
+    plt.bar(labels, values, color='blue', width=0.7)
     plt.xlabel("Classes")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=90)  # Rotate the x-axis labels so they fit and are readable
     plt.ylabel(title)
     plt.title(f"{title} per class")
+    plt.tight_layout()  # Adjust the plot to ensure everything fits without overlapping
     plt.show()
 
 
