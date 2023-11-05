@@ -250,11 +250,13 @@ def open_class_select_window(options):
 
     # Create checkboxes for each option
     checkboxes = []
-    for option in options:
+    cols = 10
+    rows = 7
+    for i, option in enumerate(options):
         var = BooleanVar()
         checkbox = Checkbutton(newWindow, text=option, variable=var)
         checkboxes.append((option, var))
-        checkbox.pack()
+        checkbox.grid(row=i // cols, column=i % cols, sticky=W)
 
     def get_selected_options():
         selected_options.clear()
@@ -265,7 +267,7 @@ def open_class_select_window(options):
 
     # Create an "Accept" button
     accept_button = Button(newWindow, text="Accept", command=get_selected_options)
-    accept_button.pack()
+    accept_button.grid(row=rows, column=0, sticky=W)
 
     # Wait for the dialog to close
     newWindow.wait_window()
@@ -281,7 +283,8 @@ def analyze_feature(feature):
     mean, std = None, None
     if feature in descriptor_shape_list:
         classes = table["class_name"].unique()
-        selected_classes = open_class_select_window(classes)
+        #selected_classes = open_class_select_window(classes)
+        selected_classes = ["Bookset", "Bottle", "Drum", "Fish"]
         #t = table[table["class_name"].isin(selected_classes)]
         class_histograms = []
         for class_name in selected_classes:
