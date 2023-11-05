@@ -5,7 +5,7 @@ import random
 import matplotlib.ticker as ticker
 from mpl_toolkits.axisartist.parasite_axes import SubplotHost
 import itertools
-
+import seaborn as sns
 def count_triangles_and_quads(polygonal_face_list):
     num_triangles = 0
     num_quads = 0
@@ -221,45 +221,31 @@ def draw_scatterplot(df_data, x_label="", y_label="", title=""):
 
 
 def draw_heatmap(matrix, class2index):
-    plt.rcParams["figure.figsize"] = [6, 6]
-    plt.rcParams["figure.autolayout"] = True
+    # Set the figure size
+    plt.figure(figsize=(6, 6))
 
-    fig = plt.figure()
-    ax = SubplotHost(fig, 111)
-    fig.add_subplot(ax)
+    # Create the heatmap using seaborn
+    ax = sns.heatmap(matrix,cmap='YlGnBu', norm="symlog", cbar_kws={'label': 'Scale'})
 
+    # Draw class lines on the heatmap
     for class_name, (start, end) in class2index.items():
-        ax.axvline(start, color='black', linestyle='solid', linewidth=0.5)
-        ax.axhline(start, color='black', linestyle='solid', linewidth=0.5)
-        ax.axvline(end, color='black', linestyle='solid', linewidth=0.5)
-        ax.axhline(end, color='black', linestyle='solid', linewidth=0.5)
+        ax.add_patch(plt.Rectangle((start, start), end - start, end - start,
+                                   fill=False, lw=0.5))
 
-    im = ax.imshow(matrix,norm="symlog")
-    plt.colorbar(im)
-    ax.tick_params(axis='both', which='both', left=False, bottom=False, right=False, top=False, labelleft=False,
-                   labelbottom=False, labelright=False, labeltop=False)
+    # Set tick locations and labels
+    tick_locs = [start + (end - start) / 2 for start, end in class2index.values()]
+    tick_lbls = list(class2index.keys())
+    ax.set_xticks(tick_locs)
+    ax.set_xticklabels(tick_lbls, rotation=90, ha='center',fontsize = 5, fontweight = 'bold')
+    ax.set_yticks(tick_locs)
+    ax.set_yticklabels(tick_lbls, rotation=0, va='center', fontsize = 5, fontweight = 'bold')
 
-    # Secondary X-axis
-    # ax2 = ax.twiny()
-    # offset = 0, -25  # Position of the second axis
-    # new_axisline = ax2.get_grid_helper().new_fixed_axis
-    #ax2.axis["bottom"] = new_axisline(loc="bottom", axes=ax2, offset=(0, -1))
-    # ax.axis["left"] = new_axisline(loc="left", axes=ax2, offset=(-25, 0))
-    #ax2.axis["top"].set_visible(False)
+    # Optionally turn off the axis labels
+    ax.set_xlabel('')
+    ax.set_ylabel('')
 
-    ax.set_yticks([start for start, _ in class2index.values()] + [list(class2index.values())[-1][1]])
-    ax.yaxis.set_major_formatter(ticker.NullFormatter())
-    ax.yaxis.set_minor_locator(ticker.FixedLocator([start + (end - start) / 2 for start, end in class2index.values()]))
-    ax.yaxis.set_minor_formatter(ticker.FixedFormatter(list(class2index.keys())))
-    ax.tick_params(axis='y', labelsize=0.5, labelrotation=90)
-
-
-    ax.set_xticks([start for start, _ in class2index.values()] + [list(class2index.values())[-1][1]])
-    ax.tick_params(axis='x', labelsize=0.5, labelrotation=90)
-    ax.xaxis.set_major_formatter(ticker.NullFormatter())
-    ax.xaxis.set_minor_locator(ticker.FixedLocator([start + (end - start) / 2 for start, end in class2index.values()]))
-    ax.xaxis.set_minor_formatter(ticker.FixedFormatter(list(class2index.keys())))
-
-
+    # Hide the original ticks
+    ax.tick_params(axis='both', which='both', length=0)
+    plt.tight_layout()
+    # Display the plot
     plt.show()
-    return fig
