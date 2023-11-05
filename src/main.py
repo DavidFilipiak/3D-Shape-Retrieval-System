@@ -376,6 +376,22 @@ def do_analyze_dr(method="default"):
     draw_scatterplot(df_tsne)
 
 
+def do_analyze_distance_matrix():
+    matrix = np.load("dist_matrix.npy")
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+    database.load_table(filename)
+    df = database.get_table()
+    df = df.sort_values(by=['name'], ignore_index=True)
+    class_counts = df['class_name'].value_counts().to_dict()
+    class_counts = {k: v for k, v in sorted(class_counts.items(), key=lambda item: item[0])}
+    total_count = 0
+    start_end_indexes = dict()
+    for name, count in class_counts.items():
+        start_end_indexes[name] = (total_count, total_count + count)
+        total_count += count
+    draw_heatmap(matrix, start_end_indexes)
+
+
 def do_full_preprocess():
     global meshes
     p = Pipeline(ms)
@@ -725,6 +741,7 @@ def main() -> None:
     drmenu.add_command(label="t-SNE (Euclidean)", command=lambda: do_analyze_dr("default"))
     drmenu.add_command(label="t-SNE (Custom)", command=lambda: do_analyze_dr("custom"))
     analyzemenu.add_cascade(label="Dimensionality Reduction", menu=drmenu)
+    analyzemenu.add_command(label="Distance Matrix", command=do_analyze_distance_matrix)
 
     menubar.add_cascade(label="Analyze", menu=analyzemenu)
     # Preprocess menu

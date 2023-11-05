@@ -165,10 +165,10 @@ def calculate_metrics(result, retrieved_classes, query_class, query_class_size=0
     return [TP, FN, FP, TN, Accuracy, Precision, Recall, F1, Sensitivity, Specificity]
 
 def custom_eval():
-    metrics = np.load("metrics-best.npy")
+    metrics = np.load("metrics_more_classes.npy")
     print(metrics.shape)
     metrics_dict = {"TP": 0,"FN": 1,"FP": 2,"TN": 3,"Accuracy": 4,"Precision": 5,"Recall": 6,"F1": 7,"Sensitivity": 8,"Specificity": 9}
-    query_sizes = range(1, 101, 5)  # Assuming these are the sizes we are interested in
+    query_sizes = range(1, 2477, 1)  # Assuming these are the sizes we are interested in
     query_size_mapper = {val: i for i, val in enumerate(query_sizes)}
     old_shape2idx = json.load(open("shape2idx.json", "r"))
     bad_quadruped_index = old_shape2idx["Quadruped/m94.obj"]
@@ -182,9 +182,9 @@ def custom_eval():
 
     # Plot custom histograms - TWO out of THREE following variables must be filled in, the third one can must be None
     # None in this case means ALL values of that variable
-    class_name = "HumanHead"
-    query_size = None
-    metric = "F1"
+    class_name = None
+    query_size = 25
+    metric = "Precision"
 
     if not class_name:
         class_indexes = list(range(0, 2477))
@@ -230,7 +230,7 @@ def custom_eval():
     elif not query_size:
         plt.title(f"Histogram of class {class_name}")
         plt.bar([i for i in range(len(matrix_window))], matrix_window)
-        plt.xticks([query_size_mapper[i] for i in query_sizes] ,query_sizes, rotation=50)
+        #plt.xticks([query_size_mapper[i] for i in query_sizes] ,query_sizes, rotation=50)
     elif not metric:
         plt.title(f"Histogram of query size {query_size}")
         plt.bar([i for i in range(len(matrix_window))][4:], matrix_window[4:])

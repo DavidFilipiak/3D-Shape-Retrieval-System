@@ -172,4 +172,6 @@ src/.polyscope.ini
 src/csv_files/distances*.csv
 src/csv_files/dist_matrix.csv
 /preprocessed_rescaled/
+metrics-all.npy
+metrics_more_classes.npy
 Files.zip
