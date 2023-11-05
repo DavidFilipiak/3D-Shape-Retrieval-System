@@ -233,25 +233,33 @@ def draw_heatmap(matrix, class2index):
         ax.axhline(start, color='black', linestyle='solid', linewidth=0.5)
         ax.axvline(end, color='black', linestyle='solid', linewidth=0.5)
         ax.axhline(end, color='black', linestyle='solid', linewidth=0.5)
-    im = ax.imshow(matrix, norm="symlog")
+
+    im = ax.imshow(matrix,norm="symlog")
     plt.colorbar(im)
-    ax.tick_params(left=False, bottom=False, right=False, top=False, labelleft=False, labelbottom=False, labelright=False, labeltop=False)
-    # Second X-axis
+    ax.tick_params(axis='both', which='both', left=False, bottom=False, right=False, top=False, labelleft=False,
+                   labelbottom=False, labelright=False, labeltop=False)
 
-    ax2 = ax.twiny()
-    offset = 0, -25  # Position of the second axis
-    new_axisline = ax2.get_grid_helper().new_fixed_axis
-    ax2.axis["bottom"] = new_axisline(loc="bottom", axes=ax2, offset=(0,-1))
-    #ax2.axis["left"] = new_axisline(loc="left", axes=ax2, offset=(-25, 0))
-    ax2.axis["top"].set_visible(False)
+    # Secondary X-axis
+    # ax2 = ax.twiny()
+    # offset = 0, -25  # Position of the second axis
+    # new_axisline = ax2.get_grid_helper().new_fixed_axis
+    #ax2.axis["bottom"] = new_axisline(loc="bottom", axes=ax2, offset=(0, -1))
+    # ax.axis["left"] = new_axisline(loc="left", axes=ax2, offset=(-25, 0))
+    #ax2.axis["top"].set_visible(False)
 
-    ax2.set_xticks([start for start, _ in class2index.values()] + [list(class2index.values())[-1][1]])
-    ax2.xaxis.set_major_formatter(ticker.NullFormatter())
-    ax2.xaxis.set_minor_locator(ticker.FixedLocator([start + (end - start) / 2 for start, end in class2index.values()]))
-    ax2.xaxis.set_minor_formatter(ticker.FixedFormatter(list(class2index.keys())))
-    ax2.tick_params(axis='x', which='both', labelsize=100, labelrotation=90)
+    ax.set_yticks([start for start, _ in class2index.values()] + [list(class2index.values())[-1][1]])
+    ax.yaxis.set_major_formatter(ticker.NullFormatter())
+    ax.yaxis.set_minor_locator(ticker.FixedLocator([start + (end - start) / 2 for start, end in class2index.values()]))
+    ax.yaxis.set_minor_formatter(ticker.FixedFormatter(list(class2index.keys())))
+    ax.tick_params(axis='y', labelsize=0.5, labelrotation=90)
 
 
-    #ax.grid(1)
+    ax.set_xticks([start for start, _ in class2index.values()] + [list(class2index.values())[-1][1]])
+    ax.tick_params(axis='x', labelsize=0.5, labelrotation=90)
+    ax.xaxis.set_major_formatter(ticker.NullFormatter())
+    ax.xaxis.set_minor_locator(ticker.FixedLocator([start + (end - start) / 2 for start, end in class2index.values()]))
+    ax.xaxis.set_minor_formatter(ticker.FixedFormatter(list(class2index.keys())))
+
+
     plt.show()
     return fig
