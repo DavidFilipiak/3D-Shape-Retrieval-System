@@ -283,8 +283,8 @@ def analyze_feature(feature):
     mean, std = None, None
     if feature in descriptor_shape_list:
         classes = table["class_name"].unique()
-        #selected_classes = open_class_select_window(classes)
-        selected_classes = ["Bookset", "Bottle", "Drum", "Fish"]
+        selected_classes = open_class_select_window(classes)
+        #selected_classes = ["Bookset", "Bottle", "Drum", "Fish"]
         #t = table[table["class_name"].isin(selected_classes)]
         class_histograms = []
         for class_name in selected_classes:
@@ -680,6 +680,75 @@ def do_print_mesh():
 def do_nothing():
     pass
 
+# DEMO FUNCTIONS
+def demo_show_bird_custom():
+    mesh_to_find = "Bird/m28.obj"
+    if database.table_name != "distances2.csv":
+        database.load_table("csv_files/distances2.csv")
+        current_csv_label.config(text=f"Current CSV: {database.table_name}")
+    table = database.get_table()
+    closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
+    counter = 0
+    meshes2 = []
+    for mesh in closest_meshes:
+        counter += 1
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        print(mesh)
+        mesh = o3d.io.read_triangle_mesh(full_file)
+        mesh.compute_vertex_normals()
+        mesh.translate([counter * 1, 0, 0])
+        meshes2.append(mesh)
+    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+
+def demo_show_bird_kdtree():
+    mesh_to_find = "Bird/m28.obj"
+
+    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+    database.load_table(filename)
+    df1 = database.get_table()
+    filename = os.path.abspath(
+        os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
+    database.clear_table()
+    database.load_table(filename)
+    df2 = database.get_table()
+
+    result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
+
+    closest_meshes = get_kdtree(mesh_to_find, result, dr="t-sne", method="demo")
+    counter = 0
+    meshes2 = []
+    for mesh in closest_meshes:
+        counter += 1
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        print(mesh)
+        mesh = o3d.io.read_triangle_mesh(full_file)
+        mesh.compute_vertex_normals()
+        mesh.translate([counter * 1, 0, 0])
+        meshes2.append(mesh)
+
+    # Visualize the mesh
+    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+
+def demo_show_bike():
+    mesh_to_find = "Bicycle/D00016.obj"
+    #mesh_to_find = "Bicycle/D00621.obj"
+    if database.table_name != "distances2.csv":
+        database.load_table("csv_files/distances2.csv")
+        current_csv_label.config(text=f"Current CSV: {database.table_name}")
+    table = database.get_table()
+    closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
+    counter = 0
+    meshes2 = []
+    for mesh in closest_meshes:
+        counter += 1
+        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+        print(mesh)
+        mesh = o3d.io.read_triangle_mesh(full_file)
+        mesh.compute_vertex_normals()
+        mesh.translate([counter * 1, 0, 0])
+        meshes2.append(mesh)
+    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+
 def main() -> None:
     global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir, root, blacklist
     filename = ''
@@ -803,6 +872,13 @@ def main() -> None:
 
     print_mesh_btn = Button(root, text="Print mesh", command=do_print_mesh)
     print_mesh_btn.grid(row=5, column=0)
+
+    demo1_btn = Button(root, text="DEMO: Show bird (custom)", command=demo_show_bird_custom)
+    demo1_btn.grid(row=1, column=5)
+    demo2_btn = Button(root, text="DEMO: Show bird (t-SNE + kd-Tree)", command=demo_show_bird_kdtree)
+    demo2_btn.grid(row=2, column=5)
+    demo3_btn = Button(root, text="DEMO: Show bike (custom)", command=demo_show_bike)
+    demo3_btn.grid(row=3, column=5)
 
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)

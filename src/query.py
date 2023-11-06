@@ -97,39 +97,43 @@ def naive_weighted_distances(mesh_name, df, n=5):
 
 # dr = "none" | "t-sne" | "umap"
 def get_kdtree(mesh_to_find, result, dr="t-sne", method = "default",query_size = 5):
-    if dr == "t-sne":
-        if (method == "default"):
-            df_tsne = reduce_tsne(result)
-            values = df_tsne.iloc[:, 2:].to_numpy()
-        else:
-            distance_matrix = np.load("distance_matrix.npy")
-            df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
-            values = df_tsne.iloc[:, 2:].to_numpy()
-    elif dr == "umap":
-        # maybe in the future???
-        values = np.zeros(1)
-        pass
+    if method == "demo":
+        with open('demo_tree.pickle', 'rb') as file_handle:
+            tree = pickle.load(file_handle)
+        values = np.load("demo_query_values.npy")
     else:
-        X = [[] for _ in range(len(result.values))]
-        desc_columns = result.columns
+        if dr == "t-sne":
+            if (method == "default"):
+                df_tsne = reduce_tsne(result)
+                values = df_tsne.iloc[:, 2:].to_numpy()
+            else:
+                distance_matrix = np.load("dist_matrix.npy")
+                df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+                values = df_tsne.iloc[:, 2:].to_numpy()
+        elif dr == "umap":
+            # maybe in the future???
+            values = np.zeros(1)
+            pass
+        else:
+            X = [[] for _ in range(len(result.values))]
+            desc_columns = result.columns
 
-        for i, elem_descriptor in enumerate(descriptor_list):
-            if elem_descriptor in desc_columns:
-                for j, row in enumerate(result[elem_descriptor].values):
-                    X[j].append(row)
-        for hist_descriptor in descriptor_shape_list:
-            if hist_descriptor in desc_columns:
-                result[hist_descriptor] = result[hist_descriptor].apply(lambda x: x[1])
-                for j, row in enumerate(result[hist_descriptor].values):
-                    X[j].extend(list(row))
+            for i, elem_descriptor in enumerate(descriptor_list):
+                if elem_descriptor in desc_columns:
+                    for j, row in enumerate(result[elem_descriptor].values):
+                        X[j].append(row)
+            for hist_descriptor in descriptor_shape_list:
+                if hist_descriptor in desc_columns:
+                    result[hist_descriptor] = result[hist_descriptor].apply(lambda x: x[1])
+                    for j, row in enumerate(result[hist_descriptor].values):
+                        X[j].extend(list(row))
 
-        values = np.asarray(X, dtype=np.float64)
+            values = np.asarray(X, dtype=np.float64)
 
-    #tree = KDTree(values)
-    with open('tree.pickle', 'rb') as file_handle:
-        tree = pickle.load(file_handle)
-    # with open('tree.pickle', 'wb') as file_handle:
-    #     pickle.dump(tree, file_handle)
+        tree = KDTree(values)
+        np.save("demo_query_values.npy", values)
+        with open('demo_tree.pickle', 'wb') as file_handle:
+             pickle.dump(tree, file_handle)
     # Let's get the top 5 closest neighbors for demonstration
     mesh_idx = result[result['name'] == mesh_to_find].index.values[0]
     distances, indices = tree.query([values[mesh_idx]], k=query_size)
