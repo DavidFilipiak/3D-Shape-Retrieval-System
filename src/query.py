@@ -87,7 +87,7 @@ def naive_weighted_features(mesh_name, df_elem, df_hist, n=5):
 
 def naive_weighted_distances(mesh_name, df, n=5):
     df = df.copy()
-    print(df.head())
+    #print(df.head())
     df_filter = df[df['name1'] == mesh_name]
     df_filter = df_filter.sort_values(by='dist')
     df_filter = df_filter.head(n + 1)

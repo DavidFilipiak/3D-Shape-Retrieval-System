@@ -183,7 +183,7 @@ def custom_eval():
     # Plot custom histograms - TWO out of THREE following variables must be filled in, the third one can must be None
     # None in this case means ALL values of that variable
     class_name = None
-    query_size = 25
+    query_size = 10
     metric = "Precision"
 
     if not class_name:
@@ -224,9 +224,11 @@ def custom_eval():
 
 
     if not class_name:
-        plt.title("Histogram of all classes")
-        plt.bar([i for i in range(len(matrix_window))], matrix_window)
-        plt.xticks([i for i in range(len(classes))], classes, rotation=90)
+        #plt.figure(figsize=(10, 8))
+        plt.title(f"histogram of {metric} with query size {query_size} across all classes")
+        reordered_classes = list(sorted(classes, key=lambda x: matrix_window[classes.index(x)]))
+        plt.bar([i for i in range(len(matrix_window))], list(sorted(matrix_window)))
+        plt.xticks([i for i in range(len(classes))], reordered_classes, rotation=90)
     elif not query_size:
         plt.title(f"Histogram of class {class_name}")
         plt.bar([i for i in range(len(matrix_window))], matrix_window)

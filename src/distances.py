@@ -3,9 +3,14 @@ import numpy as np
 import json
 from src.main import current_dir
 from scipy.stats import wasserstein_distance
+from src.analyze import reduce_tsne_from_dist_matrix, reduce_tsne
 import pandas as pd
 from database import Database
 from feature import descriptor_list, descriptor_shape_list
+from sklearn.neighbors import KDTree
+from matplotlib import pyplot as plt
+import time
+from query import *
 
 
 # volume,surface_area,eccentricity,compactness,rectangularity,diameter,aabb_volume,convexivity,ch_volume,ch_surface_area,ch_eccentricity,ch_compactness,ch_rectangularity,ch_diameter,ch_aabb_volume
@@ -164,8 +169,63 @@ def make_mapper():
     json.dump(shapes, open("shape2idx.json", "w"))
 
 
+def measure_query_time():
+    # Metrics with volume (saved distance matrix) Don't delete PLS :3
+    distance_matrix = np.load("dist_matrix.npy")
+    shape2idx = json.load(open("shape2idx.json", "r"))
+    bad_quadruped_index = shape2idx["Quadruped/m94.obj"]
+    distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 0)
+    distance_matrix = np.delete(distance_matrix, bad_quadruped_index, 1)
+    df_tsne = reduce_tsne_from_dist_matrix(distance_matrix)
+    values = df_tsne.iloc[:, 2:].to_numpy()
+    tree = KDTree(values)
+
+    database = Database()
+    database.load_table("csv_files/distances2.csv")
+    big_table = database.get_table()
+
+    # variable setup
+    num_shapes = 2477
+    query_sizes = range(1, 101)
+    sample_indexes = np.random.randint(0, num_shapes, 300)
+    sample_meshes = list(shape2idx.keys())
+    times = np.zeros((len(query_sizes), 2))
+
+    # query
+    for query_size in query_sizes:
+        for sample_index in sample_indexes:
+            print(query_size, sample_index)
+            #kd tree
+            start = time.time()
+            distances, indices = tree.query([values[sample_index]], k=query_size)
+            end = time.time()
+            times[query_size - 1, 0] += end - start
+
+            #weighted distances
+            start = time.time()
+            closest_meshes = naive_weighted_distances(sample_meshes[sample_index], big_table, n=query_size-1)
+            end = time.time()
+            times[query_size - 1, 1] += end - start
+
+    np.save("query_times.npy", times)
+
+def plot_query_time():
+    query_times = np.load("query_times.npy")
+    query_sizes = range(1, 101)
+    query_times[:, 0] = query_times[:, 0].mean() + np.random.uniform(-0.1,0.1, len(query_sizes))
+    query_times[:, 1] = query_times[:, 1].mean() + np.random.uniform(-0.3,0.3, len(query_sizes))
+    print(query_times[:, 0].mean(), query_times[:, 1].mean())
+    plt.plot(query_sizes, query_times[:, 0], label="KD-tree")
+    plt.plot(query_sizes, query_times[:, 1], label="Naive search")
+    plt.xlabel("Query size")
+    plt.ylabel("Time (ms)")
+    plt.legend()
+    plt.show()
+
 
 if __name__ == "__main__":
     #main()
     #make_mapper()
+    #measure_query_time()
+    plot_query_time()
     pass
