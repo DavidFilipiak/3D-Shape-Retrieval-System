@@ -785,7 +785,6 @@ def main() -> None:
     querymenu.add_command(label="Naive Distance Weighting", command=do_query_naive_dist_weight)
     querymenu.add_command(label="KD tree (no DR)", command=lambda: do_kdtree("none"))
     querymenu.add_command(label="KD tree (t-SNE)", command=lambda: do_kdtree("t-sne"))
-    querymenu.add_command(label="Scaled", command=do_nothing)
     menubar.add_cascade(label="Query", menu=querymenu)
     # Show menu
     showmenu = Menu(menubar, tearoff=0)
@@ -828,10 +827,10 @@ def main() -> None:
     preprocessmenu.add_command(label="Flip", command=do_flip)
     menubar.add_cascade(label="Preprocess", menu=preprocessmenu)
     # Postprocess menu
-    postprocessmenu = Menu(menubar, tearoff=0)
-    postprocessmenu.add_command(label="Stitch Holes", command=do_stitch_holes)
-    postprocessmenu.add_command(label="Fix Face Normals", command=do_fix_face_normals)
-    menubar.add_cascade(label="Postprocess", menu=postprocessmenu)
+    #postprocessmenu = Menu(menubar, tearoff=0)
+    #postprocessmenu.add_command(label="Stitch Holes", command=do_stitch_holes)
+    #postprocessmenu.add_command(label="Fix Face Normals", command=do_fix_face_normals)
+    #menubar.add_cascade(label="Postprocess", menu=postprocessmenu)
     # Extract menu
     extractmenu = Menu(menubar, tearoff=0)
     extractmenu.add_command(label="Extract feautures", command=get_elem_features)
