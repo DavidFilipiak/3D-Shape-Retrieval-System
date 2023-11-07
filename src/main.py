@@ -697,6 +697,10 @@ def demo_show_bird_custom():
         mesh = o3d.io.read_triangle_mesh(full_file)
         mesh.compute_vertex_normals()
         mesh.translate([counter * 1, 0, 0])
+        if counter == 1:
+            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+        else:
+            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
         meshes2.append(mesh)
     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
 
@@ -724,6 +728,10 @@ def demo_show_bird_kdtree():
         mesh = o3d.io.read_triangle_mesh(full_file)
         mesh.compute_vertex_normals()
         mesh.translate([counter * 1, 0, 0])
+        if counter == 1:
+            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+        else:
+            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
         meshes2.append(mesh)
 
     # Visualize the mesh
@@ -746,6 +754,10 @@ def demo_show_bike():
         mesh = o3d.io.read_triangle_mesh(full_file)
         mesh.compute_vertex_normals()
         mesh.translate([counter * 1, 0, 0])
+        if counter == 1:
+            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+        else:
+            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
         meshes2.append(mesh)
     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
 

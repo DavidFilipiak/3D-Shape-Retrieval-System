@@ -183,8 +183,8 @@ def custom_eval():
     # Plot custom histograms - TWO out of THREE following variables must be filled in, the third one can must be None
     # None in this case means ALL values of that variable
     class_name = None
-    query_size = 10
-    metric = "Precision"
+    query_size = 5
+    metric = "Accuracy"
 
     if not class_name:
         class_indexes = list(range(0, 2477))
