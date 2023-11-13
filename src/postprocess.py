@@ -11,11 +11,10 @@ AFTER FIX FACE NORMALS
 
 '''
 def stitch_holes(mesh: Mesh, meshSet: pymeshlab.MeshSet) -> Mesh:
-    # if (meshSet.get_topological_measures()["number_holes"] > 0 or meshSet.get_topological_measures()["number_holes"] == -1 ):
-    #         meshSet.meshing_repair_non_manifold_vertices()
-    #         meshSet.meshing_repair_non_manifold_edges(method=1)
-    #         meshSet.meshing_remove_unreferenced_vertices()
-    #         if(meshSet.get_topological_measures()["non_two_manifold_edges"] > 0 or meshSet.get_topological_measures()["non_two_manifold_vertices"] > 0):
+    if (meshSet.get_topological_measures()["number_holes"] > 0 or meshSet.get_topological_measures()["number_holes"] == -1 ):
+            meshSet.meshing_repair_non_manifold_vertices()
+            meshSet.meshing_repair_non_manifold_edges(method=1)
+            meshSet.meshing_remove_unreferenced_vertices()
     try:
         meshSet.meshing_close_holes(maxholesize = 20000)
     except:

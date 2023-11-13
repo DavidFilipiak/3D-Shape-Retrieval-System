@@ -216,11 +216,9 @@ def batch_preprocess():
     pipeline = Pipeline(ms)
     pipeline.add(translate_to_origin)
     pipeline.add(scale_to_unit_cube)
-    # pipeline.add(resample_mesh)
-    # pipeline.add(translate_to_origin)
-    # pipeline.add(scale_to_unit_cube)
-    # pipeline.add(align)
-    # pipeline.add(flip)
+    pipeline.add(resample_mesh)
+    pipeline.add(align)
+    pipeline.add(flip)
 
     file_count = load_files_recursively(folder_name, ".obj", limit=batch_size, offset=batch_offset)
     while file_count == batch_size:

@@ -24,7 +24,8 @@ def main():
     df2 = database.get_table()
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
     result = result.sort_values(by=['name'], ignore_index=True)
-
+    filtered_df = result[result['class_name'].isin(['Sign', 'Bicycle'])]
+    result = filtered_df
     class_counts = result['name'].str.split('/').str[0].value_counts().to_dict()
 
     # Metrics with volume (saved kd-tree)
@@ -57,7 +58,7 @@ def main():
         "Sensitivity": 8,
         "Specificity": 9
     }
-    query_sizes = range(1, 2477, 1)  # Assuming these are the sizes we are interested in
+    query_sizes = range(1, result.shape[0], 1)  # Assuming these are the sizes we are interested in
     query_size_mapper = {val: i for i, val in enumerate(query_sizes)}
     # Initialize the 3D array for storing metrics
     num_shapes = result.shape[0]
@@ -81,7 +82,8 @@ def main():
     np.save("metrics-all.npy", metrics_array)
 
     #metrics_array = np.load("metrics-best.npy")
-    #plot_overall_average_sensitivity_specificity(metrics_array, metrics_dict, num_sizes)
+    plot_average_sensitivity_specificity(metrics_array, metrics_dict, num_shapes, num_sizes, result)
+    plot_overall_average_sensitivity_specificity(metrics_array, metrics_dict, num_sizes)
 
     print("FINISHED")
 
@@ -244,8 +246,8 @@ def custom_eval():
 
 
 if __name__ == '__main__':
-    #main()
-    custom_eval()
+    main()
+    #custom_eval()
 
 
 
