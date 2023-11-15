@@ -1,7 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from src.query import get_kdtree
+from query import get_kdtree
 
 
 def evaluate(df):

@@ -1,5 +1,7 @@
+import time
 from tkinter import *
 from tkinter import filedialog
+
 import open3d as o3d
 from tkinter import simpledialog
 import os
@@ -8,6 +10,7 @@ import pandas as pd
 import numpy as np
 import math
 import polyscope as ps
+from open3d._ml3d.vis import visualizer
 
 from EvaluationMetrics import evaluate, compute_accuracy
 from mesh import Mesh, meshes
@@ -15,7 +18,7 @@ from feature import feature_list
 from database import Database
 from preprocess import *
 from postprocess import *
-from src.feature_extraction_elem import get_elementary_features
+from feature_extraction_elem import get_elementary_features
 from feature_extraction_shape_property import *
 from standardize import standardize_histogram_features, standardize_scalar_features
 from utils import *
@@ -589,7 +592,6 @@ def do_query_naive_feature_weight():
     database.clear_table()
     database.load_table(filename)
     df2 = database.get_table()
-
     closest_meshes = naive_weighted_features(mesh_to_find, df1, df2)
     counter = 0
     for mesh in closest_meshes:
@@ -599,6 +601,8 @@ def do_query_naive_feature_weight():
         add_mesh_to_system(full_file)
         ms.compute_matrix_from_translation(axisy=counter * 1)
         print(mesh)
+
+    # Calculate and print the duration
     ms.show_polyscope()
 
 def do_kdtree(dr_method):
@@ -616,7 +620,6 @@ def do_kdtree(dr_method):
     df2 = database.get_table()
 
     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
-
     closest_meshes = get_kdtree(mesh_to_find, result, dr=dr_method)
     counter = 0
     meshes2 = []
@@ -630,11 +633,17 @@ def do_kdtree(dr_method):
         mesh = o3d.io.read_triangle_mesh(full_file)
         mesh.compute_vertex_normals()
         mesh.translate([counter * 1, 0, 0])
+        if counter == 1:
+            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+        else:
+            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
         meshes2.append(mesh)
+
 
     # Visualize the mesh
     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
     #ms.show_polyscope()
+
 
 def do_evaluation():
     filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
@@ -679,85 +688,85 @@ def do_nothing():
     pass
 
 # DEMO FUNCTIONS
-def demo_show_bird_custom():
-    mesh_to_find = "Bird/m28.obj"
-    if database.table_name != "distances2.csv":
-        database.load_table("csv_files/distances2.csv")
-        current_csv_label.config(text=f"Current CSV: {database.table_name}")
-    table = database.get_table()
-    closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
-    counter = 0
-    meshes2 = []
-    for mesh in closest_meshes:
-        counter += 1
-        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
-        print(mesh)
-        mesh = o3d.io.read_triangle_mesh(full_file)
-        mesh.compute_vertex_normals()
-        mesh.translate([counter * 1, 0, 0])
-        if counter == 1:
-            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
-        else:
-            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
-        meshes2.append(mesh)
-    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
-
-def demo_show_bird_kdtree():
-    mesh_to_find = "Bird/m28.obj"
-
-    filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
-    database.load_table(filename)
-    df1 = database.get_table()
-    filename = os.path.abspath(
-        os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
-    database.clear_table()
-    database.load_table(filename)
-    df2 = database.get_table()
-
-    result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
-
-    closest_meshes = get_kdtree(mesh_to_find, result, dr="t-sne", method="demo")
-    counter = 0
-    meshes2 = []
-    for mesh in closest_meshes:
-        counter += 1
-        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
-        print(mesh)
-        mesh = o3d.io.read_triangle_mesh(full_file)
-        mesh.compute_vertex_normals()
-        mesh.translate([counter * 1, 0, 0])
-        if counter == 1:
-            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
-        else:
-            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
-        meshes2.append(mesh)
-
-    # Visualize the mesh
-    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
-
-def demo_show_bike():
-    mesh_to_find = "Bicycle/D00016.obj"
-    #mesh_to_find = "Bicycle/D00621.obj"
-    if database.table_name != "distances2.csv":
-        database.load_table("csv_files/distances2.csv")
-        current_csv_label.config(text=f"Current CSV: {database.table_name}")
-    table = database.get_table()
-    closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
-    counter = 0
-    meshes2 = []
-    for mesh in closest_meshes:
-        counter += 1
-        full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
-        print(mesh)
-        mesh = o3d.io.read_triangle_mesh(full_file)
-        mesh.compute_vertex_normals()
-        mesh.translate([counter * 1, 0, 0])
-        if counter == 1:
-            mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
-        else:
-            mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
-        meshes2.append(mesh)
-    o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+# def demo_show_bird_custom():
+#     mesh_to_find = "Bird/m28.obj"
+#     if database.table_name != "distances2.csv":
+#         database.load_table("csv_files/distances2.csv")
+#         current_csv_label.config(text=f"Current CSV: {database.table_name}")
+#     table = database.get_table()
+#     closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
+#     counter = 0
+#     meshes2 = []
+#     for mesh in closest_meshes:
+#         counter += 1
+#         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+#         print(mesh)
+#         mesh = o3d.io.read_triangle_mesh(full_file)
+#         mesh.compute_vertex_normals()
+#         mesh.translate([counter * 1, 0, 0])
+#         if counter == 1:
+#             mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+#         else:
+#             mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
+#         meshes2.append(mesh)
+#     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+#
+# def demo_show_bird_kdtree():
+#     mesh_to_find = "Bird/m28.obj"
+#
+#     filename = os.path.abspath(os.path.join(current_dir, "csv_files", "Repaired_meshes_final_standardized.csv"))
+#     database.load_table(filename)
+#     df1 = database.get_table()
+#     filename = os.path.abspath(
+#         os.path.join(current_dir, "csv_files", "shape_descriptors_for_querying_standardized.csv"))
+#     database.clear_table()
+#     database.load_table(filename)
+#     df2 = database.get_table()
+#
+#     result = pd.merge(df1, df2, on=['name', 'class_name'], how='inner')
+#
+#     closest_meshes = get_kdtree(mesh_to_find, result, dr="t-sne", method="demo")
+#     counter = 0
+#     meshes2 = []
+#     for mesh in closest_meshes:
+#         counter += 1
+#         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+#         print(mesh)
+#         mesh = o3d.io.read_triangle_mesh(full_file)
+#         mesh.compute_vertex_normals()
+#         mesh.translate([counter * 1, 0, 0])
+#         if counter == 1:
+#             mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+#         else:
+#             mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
+#         meshes2.append(mesh)
+#
+#     # Visualize the mesh
+#     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
+#
+# def demo_show_bike():
+#     mesh_to_find = "Bicycle/D00016.obj"
+#     #mesh_to_find = "Bicycle/D00621.obj"
+#     if database.table_name != "distances2.csv":
+#         database.load_table("csv_files/distances2.csv")
+#         current_csv_label.config(text=f"Current CSV: {database.table_name}")
+#     table = database.get_table()
+#     closest_meshes = naive_weighted_distances(mesh_to_find, table, n=5)
+#     counter = 0
+#     meshes2 = []
+#     for mesh in closest_meshes:
+#         counter += 1
+#         full_file = os.path.join(os.path.abspath(os.path.join(current_dir, "..", "preprocessed")), str(mesh[0]))
+#         print(mesh)
+#         mesh = o3d.io.read_triangle_mesh(full_file)
+#         mesh.compute_vertex_normals()
+#         mesh.translate([counter * 1, 0, 0])
+#         if counter == 1:
+#             mesh.paint_uniform_color([0.10980392156862745, 0.38823529411764707, 0.8901960784313725])
+#         else:
+#             mesh.paint_uniform_color([0.8901960784313725, 0.611764705882353, 0.10980392156862745])
+#         meshes2.append(mesh)
+#     o3d.visualization.draw_geometries(meshes2, width=1280, height=720)
 
 def main() -> None:
     global ms, listbox_loaded_meshes, curr_mesh, label_loaded_meshes, database, current_mesh_label, current_csv_label,filename, data, current_dir, root, blacklist
@@ -798,8 +807,8 @@ def main() -> None:
     menubar.add_cascade(label="Query", menu=querymenu)
     # Show menu
     showmenu = Menu(menubar, tearoff=0)
-    showmenu.add_command(label="Current Mesh", command=do_nothing)
-    showmenu.add_command(label="Selected Meshes", command=do_nothing)
+    # showmenu.add_command(label="Current Mesh", command=do_nothing)
+    # showmenu.add_command(label="Selected Meshes", command=do_nothing)
     showmenu.add_command(label="All Loaded Meshes", command=show)
     menubar.add_cascade(label="Show", menu=showmenu)
     # Analyze menu
@@ -881,13 +890,13 @@ def main() -> None:
 
     print_mesh_btn = Button(root, text="Print mesh", command=do_print_mesh)
     print_mesh_btn.grid(row=5, column=0)
-
-    demo1_btn = Button(root, text="DEMO: Show bird (custom)", command=demo_show_bird_custom)
-    demo1_btn.grid(row=1, column=5)
-    demo2_btn = Button(root, text="DEMO: Show bird (t-SNE + kd-Tree)", command=demo_show_bird_kdtree)
-    demo2_btn.grid(row=2, column=5)
-    demo3_btn = Button(root, text="DEMO: Show bike (custom)", command=demo_show_bike)
-    demo3_btn.grid(row=3, column=5)
+    #
+    # demo1_btn = Button(root, text="DEMO: Show bird (custom)", command=demo_show_bird_custom)
+    # demo1_btn.grid(row=1, column=5)
+    # demo2_btn = Button(root, text="DEMO: Show bird (t-SNE + kd-Tree)", command=demo_show_bird_kdtree)
+    # demo2_btn.grid(row=2, column=5)
+    # demo3_btn = Button(root, text="DEMO: Show bike (custom)", command=demo_show_bike)
+    # demo3_btn.grid(row=3, column=5)
 
     #button_graph = Button(root, text="Show histogram", command=draw_histogram(selected_x, selected_y))
     #button_graph.grid(row=3, column=1)

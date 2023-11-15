@@ -1,4 +1,5 @@
 import pickle
+import time
 
 import pandas as pd
 import numpy as np
@@ -136,8 +137,15 @@ def get_kdtree(mesh_to_find, result, dr="t-sne", method = "default",query_size =
              pickle.dump(tree, file_handle)
     # Let's get the top 5 closest neighbors for demonstration
     mesh_idx = result[result['name'] == mesh_to_find].index.values[0]
+    # End the timer
+    start_time = time.time()
+    # Calculate and print the duration
+
     distances, indices = tree.query([values[mesh_idx]], k=query_size)
 
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"Duration: {duration} seconds")
     # Extract the names of the meshes corresponding to the indices
     filter_df = result.iloc[indices[0]]
     mesh_names = filter_df['name'].values
