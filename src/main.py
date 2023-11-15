@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import math
 import polyscope as ps
-from open3d._ml3d.vis import visualizer
+#from open3d._ml3d.vis import visualizer
 
 from EvaluationMetrics import evaluate, compute_accuracy
 from mesh import Mesh, meshes
