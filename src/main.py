@@ -342,7 +342,7 @@ def analyze_feature(feature):
     #else:
         # round to 2 decimal places
     #    hist_x = np.round(hist_x, 2)
-    histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_value, analysis.max_value, mean=mean, std=std, xlabel= analysis.x_axis_label, ylabel=analysis.y_axis_label)
+    histogram = draw_histogram(hist_x[:-1], hist_y, analysis.min_value, analysis.max_value, mean=mean, std=std, xlabel= analysis.y_axis_label, ylabel=analysis.x_axis_label)
 
 
 def do_analyze_current_mesh(feature):

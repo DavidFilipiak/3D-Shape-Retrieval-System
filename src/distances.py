@@ -212,9 +212,9 @@ def measure_query_time():
 def plot_query_time():
     query_times = np.load("query_times.npy")
     query_sizes = range(1, 101)
-    query_times[:, 0] = query_times[:, 0].mean() + np.random.uniform(-0.1,0.1, len(query_sizes))
-    query_times[:, 1] = query_times[:, 1].mean() + np.random.uniform(-0.3,0.3, len(query_sizes))
-    print(query_times[:, 0].mean(), query_times[:, 1].mean())
+    #query_times[:, 0] = query_times[:, 0].mean() + np.random.uniform(-0.1,0.1, len(query_sizes))
+    #query_times[:, 1] = query_times[:, 1].mean() + np.random.uniform(-0.3,0.3, len(query_sizes))
+    #print(query_times[:, 0].mean(), query_times[:, 1].mean())
     plt.plot(query_sizes, query_times[:, 0], label="KD-tree")
     plt.plot(query_sizes, query_times[:, 1], label="Naive search")
     plt.xlabel("Query size")
